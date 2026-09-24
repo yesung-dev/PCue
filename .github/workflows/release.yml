@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Read version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart("v")
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Publish
+        run: >
+          dotnet publish PCue/PCue.csproj
+          -c Release
+          --self-contained
+          -r win-x64
+          -o publish
+          -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Install vpk
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      - name: Download previous Velopack release
+        continue-on-error: true
+        run: >
+          vpk download github
+          --repoUrl https://github.com/yesung-dev/PCue
+          --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pack
+        run: >
+          vpk pack -u PCue -v ${{ steps.ver.outputs.version }} -p publish
+          --mainExe PCue.exe --packTitle PCue --packAuthors "Yesung Cha"
+          --icon PCue/Assets/Images/favicon.ico
+          --shortcuts StartMenuRoot
+
+      - name: Build option installer
+        shell: pwsh
+        run: |
+          $velo = Get-ChildItem Releases -Filter "*-win-Setup.exe" | Select-Object -First 1
+          if (-not $velo) { throw "Velopack Setup.exe not found in Releases/" }
+          New-Item -ItemType Directory -Force -Path PCue.Installer/embedded | Out-Null
+          Copy-Item $velo.FullName PCue.Installer/embedded/VelopackSetup.exe -Force
+          dotnet publish PCue.Installer/PCue.Installer.csproj -c Release --self-contained -r win-x64 -o installer-out -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:Version=${{ steps.ver.outputs.version }}
+          if (-not (Test-Path installer-out/PCue-Setup.exe)) { throw "installer-out/PCue-Setup.exe was not produced" }
+
+      - name: Upload Velopack assets
+        run: >
+          vpk upload github
+          --repoUrl https://github.com/yesung-dev/PCue
+          --token ${{ secrets.GITHUB_TOKEN }}
+          --publish
+          --releaseName "PCue ${{ steps.ver.outputs.version }}"
+          --tag ${{ github.ref_name }}
+
+      - name: Upload PCue-Setup.exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" installer-out/PCue-Setup.exe --clobber --repo yesung-dev/PCue

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCue — 현장용 미디어 플레이어</title>
+  <meta name="description" content="PCue. 현장용 음원·영상 재생기. 관제 UI와 선택 디스플레이 출력을 분리합니다.">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="chrome">
+    <a class="brand" href="./">
+      <img src="assets/logo.png" width="22" height="22" alt="">
+      <span class="brand-name">PCue</span>
+      <span class="brand-meta">PLAYER</span>
+    </a>
+    <nav>
+      <a href="#download">다운로드</a>
+      <a href="https://github.com/yesung-dev/PCue">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-kicker">
+        <span class="pill cue">CUE</span>
+        <span class="pill live">LIVE</span>
+        <span class="pill out">OUT</span>
+      </div>
+      <img class="hero-banner" src="assets/wordmark.png" alt="PCue">
+      <p class="lede">
+        현장에서 쓰는 음원·영상 재생기입니다.
+        관제 창은 주 모니터에, 영상은 선택한 디스플레이로 보냅니다.
+      </p>
+      <div class="hero-actions" id="download">
+        <a class="btn-primary" href="https://github.com/yesung-dev/PCue/releases/latest/download/PCue-Setup.exe">
+          PCue-Setup.exe 받기
+        </a>
+        <a class="btn-ghost" href="https://github.com/yesung-dev/PCue/releases">릴리스 보기</a>
+      </div>
+      <p class="hint" id="version">Windows 64비트 · 최신 버전은 GitHub Releases에서 받습니다.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card card-playlist">
+        <div class="stripe"></div>
+        <h2>재생 목록</h2>
+        <p>파일을 끌어다 놓고 순서를 맞춥니다. 자동 다음 재생으로 큐를 이어갑니다.</p>
+      </article>
+      <article class="card card-control">
+        <div class="stripe"></div>
+        <h2>관제</h2>
+        <p>재생·시크·볼륨을 주 모니터에서 다룹니다. 핫키로도 빠르게 조작합니다.</p>
+      </article>
+      <article class="card card-out">
+        <div class="stripe"></div>
+        <h2>출력</h2>
+        <p>선택한 디스플레이에 전체 화면으로 내보냅니다. 관제 창에는 영상이 뜨지 않습니다.</p>
+      </article>
+    </section>
+
+    <section class="note">
+      <h2>설치</h2>
+      <p>
+        <strong>PCue-Setup.exe</strong>를 실행하면 됩니다. 설치 창에서 바탕화면 바로가기와
+        설치 후 실행 여부를 고를 수 있습니다. 이미 설치한 뒤에는 앱을 켤 때 업데이트를 안내합니다.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <span>PCue</span>
+    <span class="sep">·</span>
+    <span>Yesung Cha</span>
+    <span class="sep">·</span>
+    <a href="https://github.com/yesung-dev/PCue">소스 코드</a>
+  </footer>
+
+  <script>
+    fetch("https://api.github.com/repos/yesung-dev/PCue/releases/latest")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || !data.tag_name) return;
+        var el = document.getElementById("version");
+        el.textContent = "Windows 64비트 · " + data.tag_name;
+      })
+      .catch(function () {});
+  </script>
+</body>
+</html>

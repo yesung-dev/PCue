@@ -26,6 +26,13 @@ dotnet publish -p:PublishProfile=FolderProfile
 
 이 폴더 전체를 복사해 `PCue.exe`를 실행합니다. LibVLC 네이티브 라이브러리가 함께 포함됩니다.
 
+## 웹 / 설치
+
+- 랜딩: `PCue-web/` (GitHub Pages)
+- 옵션 설치 프로그램: `PCue.Installer/` → 산출물 `PCue-Setup.exe`
+
+태그 `v*` 푸시 시 Release 워크플로가 Velopack 패키지와 `PCue-Setup.exe`를 올립니다.
+
 ## 사용 팁
 
 1. **파일 추가**로 음원/영상 파일을 넣습니다.

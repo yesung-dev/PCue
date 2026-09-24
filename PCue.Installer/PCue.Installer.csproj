@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>PCue-Setup</AssemblyName>
+    <RootNamespace>PCue.Installer</RootNamespace>
+    <Product>PCue</Product>
+    <AssemblyTitle>PCue 설치</AssemblyTitle>
+    <StartupObject>PCue.Installer.Program</StartupObject>
+    <ApplicationIcon>..\PCue\Assets\Images\favicon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="..\PCue\Assets\Images\favicon.ico" Link="favicon.ico" />
+    <Resource Include="..\PCue\Assets\Images\Logo_B.png" Link="Logo_B.png" />
+    <Resource Include="..\PCue\Assets\Images\Banner_B.png" Link="Banner_B.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="embedded\VelopackSetup.exe"
+                      Condition="Exists('embedded\VelopackSetup.exe')"
+                      LogicalName="VelopackSetup.exe" />
+  </ItemGroup>
+
+</Project>

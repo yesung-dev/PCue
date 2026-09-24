@@ -211,7 +211,7 @@ publish/
 
 # Velopack packages
 Releases/
-PZM.Installer/embedded/
+PCue.Installer/embedded/
 
 # Publish Web Output
 *.[Pp]ublish.xml
