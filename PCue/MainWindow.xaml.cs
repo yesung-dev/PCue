@@ -25,7 +25,20 @@ public partial class MainWindow : Window
         };
         UpdateMaximizeGlyph();
         UpdateCornerRadius();
-        Loaded += (_, _) => Focus();
+        Loaded += OnLoaded;
+        Closing += OnClosing;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Focus();
+        await AppUpdate.PromptIfAvailableAsync(this);
+    }
+
+    private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (AppUpdate.BlockExit)
+            e.Cancel = true;
     }
 
     private void Window_OnPreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
