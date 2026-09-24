@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCue.Models;
@@ -48,6 +49,9 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private bool _showRemainingTime;
     private int _currentIndex = -1;
     private bool _suppressOutputToggle;
+    private readonly DispatcherTimer _positionTimer;
+    private long? _pendingSeekMs;
+    private DateTime _ignorePlayerSyncUntil;
 
     public MainViewModel(MediaPlayerService media)
     {
@@ -56,13 +60,29 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _media.EndReached += OnEndReached;
         _media.TimeChanged += OnTimeChanged;
         _media.LengthChanged += OnLengthChanged;
-        _media.Playing += (_, _) => StatusText = "재생 중";
-        _media.Paused += (_, _) => StatusText = "일시정지";
+        _media.Playing += (_, _) =>
+        {
+            StatusText = "재생 중";
+            StartPositionTimer();
+        };
+        _media.Paused += (_, _) =>
+        {
+            StatusText = "일시정지";
+            StopPositionTimer();
+            SyncPositionFromPlayer();
+        };
         _media.Stopped += (_, _) =>
         {
+            StopPositionTimer();
             if (_currentIndex < 0)
                 StatusText = "정지";
         };
+
+        _positionTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(33)
+        };
+        _positionTimer.Tick += (_, _) => SyncPositionFromPlayer();
 
         RefreshDisplays();
     }
@@ -284,6 +304,57 @@ public partial class MainViewModel : ObservableObject, IDisposable
             PlayAt(index);
     }
 
+    [RelayCommand]
+    private void SelectPrevious()
+    {
+        if (Playlist.Count == 0)
+            return;
+
+        if (SelectedItem is null)
+        {
+            SelectedItem = Playlist[0];
+            return;
+        }
+
+        var index = Playlist.IndexOf(SelectedItem);
+        if (index > 0)
+            SelectedItem = Playlist[index - 1];
+    }
+
+    [RelayCommand]
+    private void SelectNext()
+    {
+        if (Playlist.Count == 0)
+            return;
+
+        if (SelectedItem is null)
+        {
+            SelectedItem = Playlist[0];
+            return;
+        }
+
+        var index = Playlist.IndexOf(SelectedItem);
+        if (index >= 0 && index < Playlist.Count - 1)
+            SelectedItem = Playlist[index + 1];
+    }
+
+    [RelayCommand]
+    private void SeekBackward() => SeekBy(-5_000);
+
+    [RelayCommand]
+    private void SeekForward() => SeekBy(5_000);
+
+    public void SeekBy(long deltaMs)
+    {
+        if (_media.Player.Media is null || DurationMs <= 0)
+            return;
+
+        var next = Math.Clamp(PositionMs + deltaMs, 0, DurationMs);
+        _media.Time = (long)next;
+        PositionMs = next;
+        UpdateTimeText();
+    }
+
     partial void OnIsOutputEnabledChanged(bool value)
     {
         if (_suppressOutputToggle)
@@ -308,10 +379,76 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public void BeginSeek() => _media.BeginSeek();
 
+    public void PreviewSeek(double positionMs)
+    {
+        if (!_media.IsSeeking)
+            return;
+
+        PositionMs = Math.Clamp(positionMs, 0, Math.Max(0, DurationMs));
+        UpdateTimeText();
+    }
+
     public void EndSeek(double positionMs)
     {
-        _media.EndSeek((long)positionMs);
-        PositionMs = positionMs;
+        var clamped = (long)Math.Clamp(positionMs, 0, Math.Max(0, DurationMs));
+        _pendingSeekMs = clamped;
+        // LibVLC seek is async; hold UI on target until player catches up.
+        _ignorePlayerSyncUntil = DateTime.UtcNow.AddMilliseconds(800);
+        _media.EndSeek(clamped);
+        PositionMs = clamped;
+        UpdateTimeText();
+    }
+
+    private void StartPositionTimer()
+    {
+        if (!_positionTimer.IsEnabled)
+            _positionTimer.Start();
+    }
+
+    private void StopPositionTimer()
+    {
+        if (_positionTimer.IsEnabled)
+            _positionTimer.Stop();
+    }
+
+    private void SyncPositionFromPlayer()
+    {
+        if (_media.IsSeeking || _disposed)
+            return;
+
+        var time = _media.GetPlaybackTimeMs();
+        if (time < 0)
+            return;
+
+        if (_pendingSeekMs is long target)
+        {
+            var delta = Math.Abs(time - target);
+            if (delta <= 350)
+            {
+                // Player reached the seek target.
+                _pendingSeekMs = null;
+            }
+            else
+            {
+                // Keep showing the clicked point; never snap back to a stale Time.
+                PositionMs = target;
+                UpdateTimeText();
+
+                if (DateTime.UtcNow >= _ignorePlayerSyncUntil)
+                {
+                    // One retry if seek hasn't landed yet.
+                    _media.SeekTo(target);
+                    _ignorePlayerSyncUntil = DateTime.UtcNow.AddMilliseconds(500);
+                }
+
+                return;
+            }
+        }
+
+        if (Math.Abs(PositionMs - time) < 1)
+            return;
+
+        PositionMs = time;
         UpdateTimeText();
     }
 
@@ -394,8 +531,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var item = Playlist[index];
         item.IsPlaying = true;
         SelectedItem = item;
+        PositionMs = 0;
+        if (item.DurationMs > 0)
+            DurationMs = item.DurationMs;
+        UpdateTimeText();
+        _media.CancelSeek();
         _media.PlayFile(item.FilePath);
         StatusText = $"재생: {item.DisplayName}";
+        StartPositionTimer();
     }
 
     private void OnEndReached(object? sender, EventArgs e)
@@ -420,11 +563,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnTimeChanged(object? sender, EventArgs e)
     {
-        if (_media.IsSeeking)
+        // Prefer the smooth timer while playing; keep this as a fallback when paused.
+        if (_positionTimer.IsEnabled)
             return;
 
-        PositionMs = _media.Time;
-        UpdateTimeText();
+        SyncPositionFromPlayer();
     }
 
     private void OnLengthChanged(object? sender, EventArgs e)
@@ -486,6 +629,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             return;
 
         _disposed = true;
+        StopPositionTimer();
         DisableOutput();
         _media.EndReached -= OnEndReached;
         _media.TimeChanged -= OnTimeChanged;

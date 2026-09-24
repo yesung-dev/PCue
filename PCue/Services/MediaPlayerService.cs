@@ -23,14 +23,26 @@ public sealed class MediaPlayerService : IDisposable
     public event EventHandler? Paused;
     public event EventHandler? Stopped;
 
+    public void SeekTo(long timeMs)
+    {
+        if (_mediaPlayer.Media is null)
+            return;
+
+        timeMs = Math.Max(0, timeMs);
+        var length = _mediaPlayer.Length;
+
+        if (length > 0)
+            timeMs = Math.Min(timeMs, length);
+
+        // Use Time only — setting Time and Position together can cause a double jump.
+        if (_mediaPlayer.IsSeekable || length > 0)
+            _mediaPlayer.Time = timeMs;
+    }
+
     public long Time
     {
         get => _mediaPlayer.Time;
-        set
-        {
-            if (_mediaPlayer.IsSeekable)
-                _mediaPlayer.Time = value;
-        }
+        set => SeekTo(value);
     }
 
     public long Length => _mediaPlayer.Length;
@@ -96,7 +108,23 @@ public sealed class MediaPlayerService : IDisposable
         Time = timeMs;
     }
 
+    public void CancelSeek() => _isSeeking = false;
+
     public bool IsSeeking => _isSeeking;
+
+    /// <summary>Current media time in ms.</summary>
+    public long GetPlaybackTimeMs()
+    {
+        // Prefer Time after seeks — Position can briefly disagree and cause UI jumps.
+        var time = _mediaPlayer.Time;
+        if (time >= 0)
+            return time;
+
+        if (_mediaPlayer.Length > 0 && _mediaPlayer.Position >= 0)
+            return (long)(_mediaPlayer.Position * _mediaPlayer.Length);
+
+        return -1;
+    }
 
     /// <summary>Returns duration in milliseconds, or null if unknown.</summary>
     public async Task<long?> ProbeDurationAsync(string filePath, CancellationToken cancellationToken = default)

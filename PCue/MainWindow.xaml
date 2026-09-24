@@ -17,6 +17,8 @@
         Background="Transparent"
         Foreground="#E8EAED"
         FontFamily="Segoe UI"
+        Focusable="True"
+        PreviewKeyDown="Window_OnPreviewKeyDown"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="40"
@@ -277,10 +279,21 @@
                     <Slider x:Name="SeekSlider"
                             Minimum="0"
                             Maximum="{Binding DurationMs}"
-                            Value="{Binding PositionMs, Mode=OneWay}"
-                            PreviewMouseDown="SeekSlider_OnPreviewMouseDown"
-                            PreviewMouseUp="SeekSlider_OnPreviewMouseUp"
-                            VerticalAlignment="Center" />
+                            Value="{Binding PositionMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Height="28"
+                            VerticalContentAlignment="Center"
+                            IsMoveToPointEnabled="False"
+                            IsSnapToTickEnabled="False"
+                            LargeChange="1000"
+                            SmallChange="100"
+                            PreviewMouseLeftButtonDown="SeekSlider_OnPreviewMouseLeftButtonDown"
+                            PreviewMouseMove="SeekSlider_OnPreviewMouseMove"
+                            PreviewMouseLeftButtonUp="SeekSlider_OnPreviewMouseLeftButtonUp"
+                            VerticalAlignment="Center">
+                        <Slider.LayoutTransform>
+                            <ScaleTransform ScaleY="1.4" />
+                        </Slider.LayoutTransform>
+                    </Slider>
                 </DockPanel>
 
                 <!-- Transport -->
