@@ -10,6 +10,7 @@
     <ApplicationTitle>PCue</ApplicationTitle>
     <RootNamespace>PCue</RootNamespace>
     <AssemblyName>PCue</AssemblyName>
+    <ApplicationIcon>Assets\Images\favicon.ico</ApplicationIcon>
     <VlcWindowsX64Enabled>true</VlcWindowsX64Enabled>
     <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
     <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
@@ -24,6 +25,8 @@
 
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
+    <Resource Include="Assets\Images\Logo_B.png" />
+    <Resource Include="Assets\Images\favicon.ico" />
   </ItemGroup>
 
 </Project>

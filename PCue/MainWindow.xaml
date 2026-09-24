@@ -7,6 +7,7 @@
         xmlns:vm="clr-namespace:PCue.ViewModels"
         mc:Ignorable="d"
         Title="PCue"
+        Icon="pack://application:,,,/Assets/Images/favicon.ico"
         Height="700"
         Width="1000"
         MinHeight="520"
@@ -66,6 +67,12 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/Assets/Images/Logo_B.png"
+                               Width="22"
+                               Height="22"
+                               Margin="0,0,8,0"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               IsHitTestVisible="False" />
                         <TextBlock Text="PCue"
                                    FontSize="16"
                                    FontWeight="SemiBold"
