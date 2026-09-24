@@ -89,9 +89,9 @@ main {
 
 .hero-banner {
   display: block;
-  width: min(420px, 92%);
+  width: min(240px, 70%);
   height: auto;
-  margin: 0 auto 12px;
+  margin: 0 auto 10px;
 }
 
 .hero-ko {
@@ -240,5 +240,5 @@ footer a:hover { color: var(--text); }
 
 @media (max-width: 520px) {
   main { padding-top: 48px; }
-  .hero-banner { width: min(340px, 96%); }
+  .hero-banner { width: min(200px, 72%); }
 }
