@@ -50,9 +50,19 @@
                     MouseLeftButtonDown="TitleBar_OnMouseLeftButtonDown">
                 <DockPanel Margin="14,0,0,0">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Button Style="{StaticResource CaptionButton}" Content="─" Click="Minimize_OnClick" ToolTip="최소화" />
-                        <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" Content="□" Click="Maximize_OnClick" ToolTip="최대화" />
-                        <Button Style="{StaticResource CaptionCloseButton}" Content="✕" Click="Close_OnClick" ToolTip="닫기" />
+                        <Button Style="{StaticResource CaptionButton}"
+                                Content="{StaticResource GlyphChromeMinimize}"
+                                Click="Minimize_OnClick"
+                                ToolTip="최소화" />
+                        <Button x:Name="MaximizeButton"
+                                Style="{StaticResource CaptionButton}"
+                                Content="{StaticResource GlyphChromeMaximize}"
+                                Click="Maximize_OnClick"
+                                ToolTip="최대화" />
+                        <Button Style="{StaticResource CaptionCloseButton}"
+                                Content="{StaticResource GlyphChromeClose}"
+                                Click="Close_OnClick"
+                                ToolTip="닫기" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -68,17 +78,20 @@
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,0"
                                    FontSize="12"
-                                   shell:WindowChrome.IsHitTestVisibleInChrome="True" />
+                                   IsHitTestVisible="False" />
                         <ComboBox ItemsSource="{Binding Displays}"
                                   SelectedItem="{Binding SelectedDisplay}"
-                                  Width="240"
+                                  Width="220"
+                                  Height="32"
                                   VerticalAlignment="Center"
                                   Margin="0,0,8,0"
                                   shell:WindowChrome.IsHitTestVisibleInChrome="True" />
-                        <Button Content="새로고침"
-                                Style="{StaticResource ToolButton}"
+                        <Button Style="{StaticResource IconButton}"
                                 Command="{Binding RefreshDisplaysCommand}"
-                                shell:WindowChrome.IsHitTestVisibleInChrome="True" />
+                                ToolTip="디스플레이 새로고침"
+                                shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphRefresh}" />
+                        </Button>
                         <CheckBox Content="영상 출력"
                                   IsChecked="{Binding IsOutputEnabled}"
                                   Margin="8,0,0,0"
@@ -86,8 +99,10 @@
                         <TextBlock Text="{Binding StatusText}"
                                    Foreground="{StaticResource TextMuted}"
                                    VerticalAlignment="Center"
-                                   Margin="20,0,16,0"
+                                   Margin="16,0,12,0"
                                    FontSize="12"
+                                   MaxWidth="200"
+                                   TextTrimming="CharacterEllipsis"
                                    IsHitTestVisible="False" />
                     </StackPanel>
                 </DockPanel>
@@ -123,10 +138,31 @@
                                        VerticalAlignment="Center"
                                        Margin="12,0,0,0" />
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button Content="추가" Style="{StaticResource ToolButton}" Command="{Binding AddFilesCommand}" />
-                                <Button Content="제거" Style="{StaticResource ToolButton}" Command="{Binding RemoveSelectedCommand}" />
-                                <Button Content="위로" Style="{StaticResource ToolButton}" Command="{Binding MoveUpCommand}" />
-                                <Button Content="아래로" Style="{StaticResource ToolButton}" Command="{Binding MoveDownCommand}" Margin="0" />
+                                <Button Style="{StaticResource ToolButton}"
+                                        Command="{Binding AddFilesCommand}"
+                                        ToolTip="추가">
+                                    <TextBlock Style="{StaticResource IconGlyph}"
+                                               Text="{StaticResource GlyphAdd}"
+                                               Foreground="{StaticResource Accent}" />
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}"
+                                        Command="{Binding RemoveSelectedCommand}"
+                                        ToolTip="제거">
+                                    <TextBlock Style="{StaticResource IconGlyph}"
+                                               Text="{StaticResource GlyphRemove}"
+                                               Foreground="{StaticResource Danger}" />
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}"
+                                        Command="{Binding MoveUpCommand}"
+                                        ToolTip="위로">
+                                    <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphUp}" />
+                                </Button>
+                                <Button Style="{StaticResource ToolButton}"
+                                        Command="{Binding MoveDownCommand}"
+                                        ToolTip="아래로"
+                                        Margin="0">
+                                    <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphDown}" />
+                                </Button>
                             </StackPanel>
                         </DockPanel>
 
@@ -141,6 +177,12 @@
                                  DragOver="PlaylistBox_OnDragOver"
                                  Drop="PlaylistBox_OnDrop"
                                  MouseDoubleClick="PlaylistBox_OnMouseDoubleClick">
+                            <ListBox.Style>
+                                <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Background" Value="Transparent" />
+                                </Style>
+                            </ListBox.Style>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid MinHeight="40" Margin="0">
@@ -153,7 +195,7 @@
                                         <DockPanel Margin="14,8,12,8">
                                             <TextBlock Text="{Binding Number, StringFormat={}{0}}"
                                                        DockPanel.Dock="Left"
-                                                       Width="28"
+                                                       MinWidth="32"
                                                        Foreground="{StaticResource TextMuted}"
                                                        FontFamily="{StaticResource MonoFont}"
                                                        FontSize="12"
@@ -172,7 +214,7 @@
                                             </Border>
                                             <TextBlock Text="{Binding DurationText}"
                                                        DockPanel.Dock="Right"
-                                                       Width="52"
+                                                       MinWidth="56"
                                                        TextAlignment="Right"
                                                        Foreground="{StaticResource TextMuted}"
                                                        FontFamily="{StaticResource MonoFont}"
@@ -191,12 +233,33 @@
                                             <Setter TargetName="PlayBg" Property="Background" Value="{StaticResource AccentDim}" />
                                             <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource Accent}" />
                                             <Setter TargetName="TypeChip" Property="Background" Value="{StaticResource Accent}" />
-                                            <Setter TargetName="TypeText" Property="Foreground" Value="#0B0E13" />
+                                            <Setter TargetName="TypeText" Property="Foreground" Value="{StaticResource TextOnAccent}" />
                                         </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="재생 목록이 비어 있습니다&#x0a;파일을 추가하거나 끌어다 놓으세요"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Foreground="{StaticResource TextMuted}"
+                                   FontSize="13"
+                                   LineHeight="22"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasPlaylistItems}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Grid>
                 </Border>
 
@@ -226,7 +289,7 @@
                                        Foreground="{StaticResource Accent}"
                                        Cursor="Hand"
                                        Background="Transparent"
-                                       ToolTip="클릭: 경과/남은 시간 전환">
+                                       ToolTip="경과 시간 ↔ 남은 시간">
                                 <TextBlock.InputBindings>
                                     <MouseBinding MouseAction="LeftClick"
                                                   Command="{Binding ToggleTimeDisplayCommand}" />
@@ -243,6 +306,7 @@
                                     PreviewMouseLeftButtonDown="SeekSlider_OnPreviewMouseLeftButtonDown"
                                     PreviewMouseMove="SeekSlider_OnPreviewMouseMove"
                                     PreviewMouseLeftButtonUp="SeekSlider_OnPreviewMouseLeftButtonUp"
+                                    LostMouseCapture="SeekSlider_OnLostMouseCapture"
                                     VerticalAlignment="Center" />
                         </DockPanel>
 
@@ -261,20 +325,52 @@
                             <StackPanel Orientation="Horizontal"
                                         DockPanel.Dock="Right"
                                         VerticalAlignment="Center">
-                                <TextBlock Text="볼륨"
-                                           Foreground="{StaticResource TextMuted}"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,10,0"
-                                           FontSize="12" />
-                                <Slider Width="140"
+                                <Button Style="{StaticResource IconButton}"
+                                        Command="{Binding ToggleMuteCommand}"
+                                        Margin="0"
+                                        VerticalAlignment="Center">
+                                    <Button.ToolTip>
+                                        <TextBlock>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="음소거" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                                            <Setter Property="Text" Value="음소거 해제" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Button.ToolTip>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource IconGlyph}">
+                                                <Setter Property="Text" Value="{StaticResource GlyphVolume}" />
+                                                <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+                                                <Setter Property="FontSize" Value="16" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMuted}" Value="True">
+                                                        <Setter Property="Text" Value="{StaticResource GlyphMute}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Button>
+                                <Slider Style="{StaticResource VolumeSlider}"
+                                        Width="132"
+                                        Margin="6,0,0,0"
                                         Minimum="0"
                                         Maximum="100"
                                         Value="{Binding Volume}"
+                                        IsMoveToPointEnabled="True"
                                         VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Volume, StringFormat={}{0:0}}"
-                                           Width="28"
-                                           Margin="8,0,0,0"
+                                           Width="26"
+                                           Margin="6,0,0,0"
                                            VerticalAlignment="Center"
+                                           TextAlignment="Right"
                                            FontFamily="{StaticResource MonoFont}"
                                            Foreground="{StaticResource TextMuted}"
                                            FontSize="12" />

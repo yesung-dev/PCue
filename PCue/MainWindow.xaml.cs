@@ -76,6 +76,10 @@ public partial class MainWindow : Window
                 _viewModel.SeekForwardCommand.Execute(null);
                 e.Handled = true;
                 break;
+            case Key.Delete:
+                _viewModel.RemoveSelectedCommand.Execute(null);
+                e.Handled = true;
+                break;
         }
     }
 
@@ -116,7 +120,9 @@ public partial class MainWindow : Window
         if (MaximizeButton is null)
             return;
 
-        MaximizeButton.Content = WindowState == WindowState.Maximized ? "❐" : "□";
+        MaximizeButton.Content = WindowState == WindowState.Maximized
+            ? (string)FindResource("GlyphChromeRestore")
+            : (string)FindResource("GlyphChromeMaximize");
         MaximizeButton.ToolTip = WindowState == WindowState.Maximized ? "이전 크기로" : "최대화";
     }
 
@@ -190,7 +196,6 @@ public partial class MainWindow : Window
         _seekPointerDownValue = GetSliderValueFromMouse(slider, e);
         _seekDragMoved = false;
 
-        // UI only on press — actual media seek happens once on release (avoids jump-then-return).
         _viewModel.BeginSeek();
         _viewModel.PreviewSeek(_seekPointerDownValue);
         slider.CaptureMouse();
@@ -209,9 +214,8 @@ public partial class MainWindow : Window
         if (!_seekDragMoved)
             return;
 
-        var value = GetSliderValueFromMouse(slider, e);
-        _viewModel.PreviewSeek(value);
-        _media.SeekTo((long)value);
+        // UI scrub only — media seek once on mouse-up.
+        _viewModel.PreviewSeek(GetSliderValueFromMouse(slider, e));
         e.Handled = true;
     }
 
@@ -220,7 +224,6 @@ public partial class MainWindow : Window
         if (sender is not Slider slider || !_media.IsSeeking)
             return;
 
-        // Click: exact down position. Drag: final pointer position.
         var value = _seekDragMoved
             ? GetSliderValueFromMouse(slider, e)
             : _seekPointerDownValue;
@@ -231,8 +234,18 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void SeekSlider_OnLostMouseCapture(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (!_media.IsSeeking)
+            return;
+
+        // Capture lost without mouse-up (Alt+Tab, etc.) — cancel scrub without freezing sync.
+        _viewModel.CancelSeekInteraction();
+    }
+
     private static double GetSliderValueFromMouse(Slider slider, System.Windows.Input.MouseEventArgs e)
     {
+        const double inset = 8;
         slider.ApplyTemplate();
 
         if (slider.Template?.FindName("PART_Track", slider) is System.Windows.Controls.Primitives.Track track
@@ -241,8 +254,8 @@ public partial class MainWindow : Window
             return Math.Clamp(track.ValueFromPoint(e.GetPosition(track)), slider.Minimum, slider.Maximum);
         }
 
-        var x = e.GetPosition(slider).X;
-        var width = Math.Max(1, slider.ActualWidth);
+        var x = e.GetPosition(slider).X - inset;
+        var width = Math.Max(1, slider.ActualWidth - inset * 2);
         var ratio = Math.Clamp(x / width, 0, 1);
         return slider.Minimum + (slider.Maximum - slider.Minimum) * ratio;
     }

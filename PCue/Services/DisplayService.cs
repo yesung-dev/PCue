@@ -14,12 +14,13 @@ public sealed class DisplayService
         {
             var screen = screens[i];
             var bounds = screen.Bounds;
-            var role = screen.Primary ? "주 모니터" : "보조";
+            var role = screen.Primary ? "주 모니터" : "보조 모니터";
             list.Add(new DisplayInfo
             {
                 Index = i,
                 DeviceName = screen.DeviceName,
-                Label = $"{i + 1}: {role} ({bounds.Width}x{bounds.Height})",
+                Label = $"{i + 1}: {role} ({bounds.Width}×{bounds.Height})",
+                // Device pixels — convert to DIPs when placing WPF windows.
                 X = bounds.X,
                 Y = bounds.Y,
                 Width = bounds.Width,
@@ -29,13 +30,5 @@ public sealed class DisplayService
         }
 
         return list;
-    }
-
-    public DisplayInfo? FindByDeviceName(string? deviceName)
-    {
-        if (string.IsNullOrEmpty(deviceName))
-            return null;
-
-        return GetDisplays().FirstOrDefault(d => d.DeviceName == deviceName);
     }
 }

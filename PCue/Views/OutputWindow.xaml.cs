@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using LibVLCSharp.Shared;
 using PCue.Models;
 
@@ -10,10 +11,11 @@ public partial class OutputWindow : Window
     public OutputWindow()
     {
         InitializeComponent();
+        ShowActivated = false;
         Loaded += OnLoaded;
     }
 
-    public void AttachMediaPlayer(MediaPlayer mediaPlayer)
+    public void AttachMediaPlayer(LibVLCSharp.Shared.MediaPlayer mediaPlayer)
     {
         VideoView.MediaPlayer = mediaPlayer;
     }
@@ -26,6 +28,22 @@ public partial class OutputWindow : Window
     public void PlaceOnDisplay(DisplayInfo display)
     {
         WindowState = WindowState.Normal;
+
+        // Screen.Bounds are device pixels; WPF layout uses DIPs.
+        var hwnd = new WindowInteropHelper(this).EnsureHandle();
+        var source = HwndSource.FromHwnd(hwnd);
+        if (source?.CompositionTarget is not null)
+        {
+            var fromDevice = source.CompositionTarget.TransformFromDevice;
+            var topLeft = fromDevice.Transform(new System.Windows.Point(display.X, display.Y));
+            var bottomRight = fromDevice.Transform(new System.Windows.Point(display.X + display.Width, display.Y + display.Height));
+            Left = topLeft.X;
+            Top = topLeft.Y;
+            Width = Math.Max(1, bottomRight.X - topLeft.X);
+            Height = Math.Max(1, bottomRight.Y - topLeft.Y);
+            return;
+        }
+
         Left = display.X;
         Top = display.Y;
         Width = display.Width;

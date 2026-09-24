@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
                     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
 
     <FontFamily x:Key="AppFont">pack://application:,,,/Assets/Fonts/#Pretendard</FontFamily>
@@ -16,6 +17,10 @@
     <Color x:Key="AccentDimColor">#FF1A3D3A</Color>
     <Color x:Key="DangerColor">#FFE24B5A</Color>
 
+    <Color x:Key="TextOnAccentColor">#FF0B0E13</Color>
+    <Color x:Key="AccentHoverColor">#FF5FE3D5</Color>
+    <Color x:Key="AccentPressedColor">#FF7AEDDF</Color>
+
     <SolidColorBrush x:Key="BgDeep" Color="{StaticResource BgDeepColor}" />
     <SolidColorBrush x:Key="BgPanel" Color="{StaticResource BgPanelColor}" />
     <SolidColorBrush x:Key="BgElevated" Color="{StaticResource BgElevatedColor}" />
@@ -26,6 +31,9 @@
     <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}" />
     <SolidColorBrush x:Key="AccentDim" Color="{StaticResource AccentDimColor}" />
     <SolidColorBrush x:Key="Danger" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="TextOnAccent" Color="{StaticResource TextOnAccentColor}" />
+    <SolidColorBrush x:Key="AccentHover" Color="{StaticResource AccentHoverColor}" />
+    <SolidColorBrush x:Key="AccentPressed" Color="{StaticResource AccentPressedColor}" />
 
     <Style TargetType="Button">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
@@ -59,9 +67,63 @@
     </Style>
 
     <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="ToolTipService.InitialShowDelay" Value="400" />
+    </Style>
+
+    <!-- Windows built-in icon font (Fluent on Win11, MDL2 fallback) -->
+    <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+    <sys:String x:Key="GlyphAdd">&#xE710;</sys:String>
+    <sys:String x:Key="GlyphRemove">&#xE738;</sys:String>
+    <sys:String x:Key="GlyphUp">&#xE74A;</sys:String>
+    <sys:String x:Key="GlyphDown">&#xE74B;</sys:String>
+    <sys:String x:Key="GlyphRefresh">&#xE72C;</sys:String>
+    <sys:String x:Key="GlyphVolume">&#xE767;</sys:String>
+    <sys:String x:Key="GlyphMute">&#xE74F;</sys:String>
+    <sys:String x:Key="GlyphChromeMinimize">&#xE921;</sys:String>
+    <sys:String x:Key="GlyphChromeMaximize">&#xE922;</sys:String>
+    <sys:String x:Key="GlyphChromeRestore">&#xE923;</sys:String>
+    <sys:String x:Key="GlyphChromeClose">&#xE8BB;</sys:String>
+
+    <Style x:Key="IconGlyph" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource ToolButton}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource BgHover}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="TransportButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -74,7 +136,7 @@
 
     <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource TransportButton}">
         <Setter Property="Background" Value="{StaticResource Accent}" />
-        <Setter Property="Foreground" Value="#0B0E13" />
+        <Setter Property="Foreground" Value="{StaticResource TextOnAccent}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -86,7 +148,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.9" />
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentHover}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -105,7 +167,8 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+        <Setter Property="FontSize" Value="10" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
         <Setter Property="Template">
@@ -207,14 +270,14 @@
                 <ControlTemplate TargetType="Thumb">
                     <Ellipse x:Name="ThumbShape"
                              Fill="{StaticResource Accent}"
-                             Stroke="#0B0E13"
+                             Stroke="{StaticResource TextOnAccent}"
                              StrokeThickness="2" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ThumbShape" Property="Fill" Value="#5FE3D5" />
+                            <Setter TargetName="ThumbShape" Property="Fill" Value="{StaticResource AccentHover}" />
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
-                            <Setter TargetName="ThumbShape" Property="Fill" Value="#7AEDDF" />
+                            <Setter TargetName="ThumbShape" Property="Fill" Value="{StaticResource AccentPressed}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -231,12 +294,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
-                    <Grid>
+                    <Grid Margin="8,0" Background="Transparent">
                         <Border VerticalAlignment="Center"
                                 Height="6"
                                 CornerRadius="3"
-                                Background="{StaticResource BgElevated}"
-                                Margin="8,0" />
+                                Background="{StaticResource BgElevated}" />
                         <Track x:Name="PART_Track" VerticalAlignment="Center">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Command="Slider.DecreaseLarge" IsTabStop="False">
@@ -244,8 +306,7 @@
                                         <ControlTemplate TargetType="RepeatButton">
                                             <Border Height="6"
                                                     CornerRadius="3,0,0,3"
-                                                    Background="{StaticResource Accent}"
-                                                    Margin="8,0,0,0" />
+                                                    Background="{StaticResource Accent}" />
                                         </ControlTemplate>
                                     </RepeatButton.Template>
                                 </RepeatButton>
@@ -274,12 +335,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
-                    <Grid Background="Transparent">
+                    <Grid Margin="8,0" Background="Transparent">
                         <Border VerticalAlignment="Center"
                                 Height="8"
                                 CornerRadius="4"
-                                Background="{StaticResource BgElevated}"
-                                Margin="8,0" />
+                                Background="{StaticResource BgElevated}" />
                         <Track x:Name="PART_Track" VerticalAlignment="Center">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Command="Slider.DecreaseLarge" IsTabStop="False">
@@ -287,8 +347,7 @@
                                         <ControlTemplate TargetType="RepeatButton">
                                             <Border Height="8"
                                                     CornerRadius="4,0,0,4"
-                                                    Background="{StaticResource Accent}"
-                                                    Margin="8,0,0,0" />
+                                                    Background="{StaticResource Accent}" />
                                         </ControlTemplate>
                                     </RepeatButton.Template>
                                 </RepeatButton>
@@ -301,6 +360,46 @@
                                     <RepeatButton.Template>
                                         <ControlTemplate TargetType="RepeatButton">
                                             <Border Background="Transparent" Height="28" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="VolumeSlider" TargetType="Slider" BasedOn="{StaticResource {x:Type Slider}}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Margin="0" Background="Transparent">
+                        <Border VerticalAlignment="Center"
+                                Height="6"
+                                CornerRadius="3"
+                                Background="{StaticResource BgElevated}" />
+                        <Track x:Name="PART_Track" VerticalAlignment="Center">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="Slider.DecreaseLarge" IsTabStop="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Height="6"
+                                                    CornerRadius="3,0,0,3"
+                                                    Background="{StaticResource Accent}" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource SliderThumb}" />
+                            </Track.Thumb>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="Slider.IncreaseLarge" IsTabStop="False">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Background="Transparent" Height="24" />
                                         </ControlTemplate>
                                     </RepeatButton.Template>
                                 </RepeatButton>
@@ -434,30 +533,111 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="Row"
-                            Background="Transparent"
-                            BorderBrush="Transparent"
-                            BorderThickness="0,0,0,1"
-                            Padding="0">
-                        <Grid>
-                            <Border x:Name="AccentBar"
-                                    Width="3"
-                                    HorizontalAlignment="Left"
-                                    Background="Transparent" />
-                            <ContentPresenter Margin="0" />
-                        </Grid>
+                    <Border x:Name="Row" Background="Transparent" Padding="0">
+                        <ContentPresenter Margin="0" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Row" Property="Background" Value="{StaticResource BgHover}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Row" Property="Background" Value="{StaticResource BgElevated}" />
+                            <Setter TargetName="Row" Property="Background" Value="{StaticResource BgHover}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style TargetType="ToolTip">
+        <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+        <Setter Property="Background" Value="{StaticResource BgElevated}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ScrollBar}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="10" />
+        <Setter Property="MinWidth" Value="10" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <Grid Background="Transparent">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Border x:Name="ThumbBd"
+                                                    Background="{StaticResource BgElevated}"
+                                                    CornerRadius="4"
+                                                    Margin="2,0" />
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource BgHover}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto" />
+                <Setter Property="MinWidth" Value="0" />
+                <Setter Property="Height" Value="10" />
+                <Setter Property="MinHeight" Value="10" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ScrollBar}">
+                            <Grid Background="Transparent">
+                                <Track x:Name="PART_Track" IsDirectionReversed="False">
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb">
+                                                    <Border x:Name="ThumbBd"
+                                                            Background="{StaticResource BgElevated}"
+                                                            CornerRadius="4"
+                                                            Margin="0,2" />
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ThumbBd" Property="Background" Value="{StaticResource BgHover}" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

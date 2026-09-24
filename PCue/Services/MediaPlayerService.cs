@@ -57,7 +57,6 @@ public sealed class MediaPlayerService : IDisposable
 
     public MediaPlayerService()
     {
-        Core.Initialize();
         _libVlc = new LibVLC("--no-video-title-show", "--quiet");
         _mediaPlayer = new MediaPlayer(_libVlc);
         _dispatcher = Dispatcher.CurrentDispatcher;
