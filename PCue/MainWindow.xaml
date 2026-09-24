@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:vm="clr-namespace:PCue.ViewModels"
         mc:Ignorable="d"
         Title="PCue"
@@ -10,10 +11,21 @@
         Width="960"
         MinHeight="480"
         MinWidth="720"
-        Background="#1A1D23"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        AllowsTransparency="True"
+        Background="Transparent"
         Foreground="#E8EAED"
         FontFamily="Segoe UI"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="40"
+                            ResizeBorderThickness="6"
+                            GlassFrameThickness="0"
+                            CornerRadius="10"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Padding" Value="14,8" />
@@ -43,6 +55,48 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#E8EAED" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2D3340" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CaptionCloseButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="#E8EAED" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -54,172 +108,213 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Border x:Name="RootBorder"
+            Background="#1A1D23"
+            BorderBrush="#2D3340"
+            BorderThickness="1"
+            CornerRadius="10"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <!-- Header / output display -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,12" LastChildFill="False">
-            <TextBlock Text="PCue"
-                       FontSize="22"
-                       FontWeight="SemiBold"
-                       VerticalAlignment="Center"
-                       Margin="0,0,24,0" />
-            <TextBlock Text="출력 디스플레이"
-                       VerticalAlignment="Center"
-                       Margin="0,0,8,0"
-                       Opacity="0.75" />
-            <ComboBox ItemsSource="{Binding Displays}"
-                      SelectedItem="{Binding SelectedDisplay}"
-                      Width="280"
-                      Margin="0,0,12,0" />
-            <Button Content="새로고침"
-                    Command="{Binding RefreshDisplaysCommand}"
-                    Margin="0,0,16,0" />
-            <CheckBox Content="영상 출력 ON"
-                      IsChecked="{Binding IsOutputEnabled}"
-                      VerticalAlignment="Center" />
-            <TextBlock Text="{Binding StatusText}"
-                       DockPanel.Dock="Right"
-                       VerticalAlignment="Center"
-                       Opacity="0.7"
-                       Margin="24,0,0,0" />
-        </DockPanel>
+            <!-- Custom title bar -->
+            <Border x:Name="TitleBarBorder"
+                    Grid.Row="0"
+                    Background="#12141A"
+                    CornerRadius="10,10,0,0"
+                    MouseLeftButtonDown="TitleBar_OnMouseLeftButtonDown">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Style="{StaticResource CaptionButton}"
+                                Content="─"
+                                Click="Minimize_OnClick"
+                                ToolTip="최소화" />
+                        <Button x:Name="MaximizeButton"
+                                Style="{StaticResource CaptionButton}"
+                                Content="□"
+                                Click="Maximize_OnClick"
+                                ToolTip="최대화" />
+                        <Button Style="{StaticResource CaptionCloseButton}"
+                                Content="✕"
+                                Click="Close_OnClick"
+                                ToolTip="닫기" />
+                    </StackPanel>
+                    <TextBlock Text="PCue"
+                               VerticalAlignment="Center"
+                               Margin="14,0,0,0"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               IsHitTestVisible="False" />
+                </DockPanel>
+            </Border>
 
-        <!-- Playlist -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <ListBox x:Name="PlaylistBox"
-                     ItemsSource="{Binding Playlist}"
-                     SelectedItem="{Binding SelectedItem}"
-                     Background="#12141A"
-                     Foreground="#E8EAED"
-                     BorderBrush="#2D3340"
-                     BorderThickness="1"
-                     AllowDrop="True"
-                     DragOver="PlaylistBox_OnDragOver"
-                     Drop="PlaylistBox_OnDrop"
-                     MouseDoubleClick="PlaylistBox_OnMouseDoubleClick">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <DockPanel Margin="4,6">
-                            <TextBlock Text="{Binding Number, StringFormat={}{0}.}"
-                                       DockPanel.Dock="Left"
-                                       Width="36"
-                                       Opacity="0.65"
-                                       FontFamily="Consolas" />
-                            <TextBlock x:Name="PlayingMark"
-                                       Text="▶"
-                                       DockPanel.Dock="Left"
-                                       Margin="0,0,8,0"
-                                       Foreground="#5B9CFF"
-                                       FontWeight="Bold"
-                                       Visibility="Collapsed" />
-                            <Border DockPanel.Dock="Left"
-                                    Background="#2A3140"
-                                    CornerRadius="3"
-                                    Padding="6,1"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="{Binding SourceType}"
-                                           FontSize="11"
-                                           Opacity="0.9" />
-                            </Border>
-                            <TextBlock Text="{Binding DurationText}"
-                                       DockPanel.Dock="Right"
-                                       Width="56"
-                                       TextAlignment="Right"
-                                       Opacity="0.65"
-                                       FontFamily="Consolas"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,4,0" />
-                            <TextBlock Text="{Binding DisplayName}"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center"
-                                       ToolTip="{Binding FilePath}" />
-                        </DockPanel>
-                        <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                <Setter TargetName="PlayingMark" Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                <!-- Header / output display -->
+                <DockPanel Grid.Row="0" Margin="0,0,0,12" LastChildFill="False">
+                    <TextBlock Text="출력 디스플레이"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"
+                               Opacity="0.75" />
+                    <ComboBox ItemsSource="{Binding Displays}"
+                              SelectedItem="{Binding SelectedDisplay}"
+                              Width="280"
+                              Margin="0,0,12,0" />
+                    <Button Content="새로고침"
+                            Command="{Binding RefreshDisplaysCommand}"
+                            Margin="0,0,16,0" />
+                    <CheckBox Content="영상 출력 ON"
+                              IsChecked="{Binding IsOutputEnabled}"
+                              VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding StatusText}"
+                               DockPanel.Dock="Right"
+                               VerticalAlignment="Center"
+                               Opacity="0.7"
+                               Margin="24,0,0,0" />
+                </DockPanel>
 
-            <StackPanel Grid.Column="1" Margin="12,0,0,0" Width="120">
-                <Button Content="파일 추가" Command="{Binding AddFilesCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
-                <Button Content="제거" Command="{Binding RemoveSelectedCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
-                <Button Content="위로" Command="{Binding MoveUpCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
-                <Button Content="아래로" Command="{Binding MoveDownCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
-                <Button Content="선택 재생" Command="{Binding PlaySelectedCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
-            </StackPanel>
+                <!-- Playlist -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListBox x:Name="PlaylistBox"
+                             ItemsSource="{Binding Playlist}"
+                             SelectedItem="{Binding SelectedItem}"
+                             Background="#12141A"
+                             Foreground="#E8EAED"
+                             BorderBrush="#2D3340"
+                             BorderThickness="1"
+                             AllowDrop="True"
+                             DragOver="PlaylistBox_OnDragOver"
+                             Drop="PlaylistBox_OnDrop"
+                             MouseDoubleClick="PlaylistBox_OnMouseDoubleClick">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="4,6">
+                                    <TextBlock Text="{Binding Number, StringFormat={}{0}.}"
+                                               DockPanel.Dock="Left"
+                                               Width="36"
+                                               Opacity="0.65"
+                                               FontFamily="Consolas" />
+                                    <TextBlock x:Name="PlayingMark"
+                                               Text="▶"
+                                               DockPanel.Dock="Left"
+                                               Margin="0,0,8,0"
+                                               Foreground="#5B9CFF"
+                                               FontWeight="Bold"
+                                               Visibility="Collapsed" />
+                                    <Border DockPanel.Dock="Left"
+                                            Background="#2A3140"
+                                            CornerRadius="3"
+                                            Padding="6,1"
+                                            Margin="0,0,10,0"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SourceType}"
+                                                   FontSize="11"
+                                                   Opacity="0.9" />
+                                    </Border>
+                                    <TextBlock Text="{Binding DurationText}"
+                                               DockPanel.Dock="Right"
+                                               Width="56"
+                                               TextAlignment="Right"
+                                               Opacity="0.65"
+                                               FontFamily="Consolas"
+                                               VerticalAlignment="Center"
+                                               Margin="10,0,4,0" />
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"
+                                               ToolTip="{Binding FilePath}" />
+                                </DockPanel>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                        <Setter TargetName="PlayingMark" Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0" Width="120">
+                        <Button Content="파일 추가" Command="{Binding AddFilesCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
+                        <Button Content="제거" Command="{Binding RemoveSelectedCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
+                        <Button Content="위로" Command="{Binding MoveUpCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
+                        <Button Content="아래로" Command="{Binding MoveDownCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
+                        <Button Content="선택 재생" Command="{Binding PlaySelectedCommand}" Margin="0,0,0,8" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Seek -->
+                <DockPanel Grid.Row="2" Margin="0,16,0,8">
+                    <TextBlock Text="{Binding TimeText}"
+                               DockPanel.Dock="Right"
+                               VerticalAlignment="Center"
+                               Width="120"
+                               TextAlignment="Right"
+                               Margin="12,0,0,0"
+                               FontFamily="Consolas"
+                               Cursor="Hand"
+                               Background="Transparent"
+                               ToolTip="클릭: 경과/남은 시간 전환">
+                        <TextBlock.InputBindings>
+                            <MouseBinding MouseAction="LeftClick"
+                                          Command="{Binding ToggleTimeDisplayCommand}" />
+                        </TextBlock.InputBindings>
+                    </TextBlock>
+                    <Slider x:Name="SeekSlider"
+                            Minimum="0"
+                            Maximum="{Binding DurationMs}"
+                            Value="{Binding PositionMs, Mode=OneWay}"
+                            PreviewMouseDown="SeekSlider_OnPreviewMouseDown"
+                            PreviewMouseUp="SeekSlider_OnPreviewMouseUp"
+                            VerticalAlignment="Center" />
+                </DockPanel>
+
+                <!-- Transport -->
+                <DockPanel Grid.Row="3" LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="이전" Command="{Binding PreviousCommand}" />
+                        <Button Content="재생" Command="{Binding PlayCommand}" />
+                        <Button Content="일시정지" Command="{Binding PauseCommand}" />
+                        <Button Content="정지" Command="{Binding StopCommand}" />
+                        <Button Content="다음" Command="{Binding NextCommand}" />
+                        <CheckBox Content="자동 다음 재생"
+                                  IsChecked="{Binding AutoAdvance}"
+                                  Margin="16,0,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                DockPanel.Dock="Right"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="볼륨"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
+                                   Opacity="0.75" />
+                        <Slider Width="140"
+                                Minimum="0"
+                                Maximum="100"
+                                Value="{Binding Volume}"
+                                VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Volume, StringFormat={}{0:0}}"
+                                   Width="32"
+                                   Margin="8,0,0,0"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
         </Grid>
-
-        <!-- Seek -->
-        <DockPanel Grid.Row="2" Margin="0,16,0,8">
-            <TextBlock Text="{Binding TimeText}"
-                       DockPanel.Dock="Right"
-                       VerticalAlignment="Center"
-                       Width="120"
-                       TextAlignment="Right"
-                       Margin="12,0,0,0"
-                       FontFamily="Consolas"
-                       Cursor="Hand"
-                       Background="Transparent"
-                       ToolTip="클릭: 경과/남은 시간 전환">
-                <TextBlock.InputBindings>
-                    <MouseBinding MouseAction="LeftClick"
-                                  Command="{Binding ToggleTimeDisplayCommand}" />
-                </TextBlock.InputBindings>
-            </TextBlock>
-            <Slider x:Name="SeekSlider"
-                    Minimum="0"
-                    Maximum="{Binding DurationMs}"
-                    Value="{Binding PositionMs, Mode=OneWay}"
-                    PreviewMouseDown="SeekSlider_OnPreviewMouseDown"
-                    PreviewMouseUp="SeekSlider_OnPreviewMouseUp"
-                    VerticalAlignment="Center" />
-        </DockPanel>
-
-        <!-- Transport -->
-        <DockPanel Grid.Row="3" LastChildFill="False">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="이전" Command="{Binding PreviousCommand}" />
-                <Button Content="재생" Command="{Binding PlayCommand}" />
-                <Button Content="일시정지" Command="{Binding PauseCommand}" />
-                <Button Content="정지" Command="{Binding StopCommand}" />
-                <Button Content="다음" Command="{Binding NextCommand}" />
-                <CheckBox Content="자동 다음 재생"
-                          IsChecked="{Binding AutoAdvance}"
-                          Margin="16,0,0,0" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal"
-                        DockPanel.Dock="Right"
-                        VerticalAlignment="Center">
-                <TextBlock Text="볼륨"
-                           VerticalAlignment="Center"
-                           Margin="0,0,8,0"
-                           Opacity="0.75" />
-                <Slider Width="140"
-                        Minimum="0"
-                        Maximum="100"
-                        Value="{Binding Volume}"
-                        VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Volume, StringFormat={}{0:0}}"
-                           Width="32"
-                           Margin="8,0,0,0"
-                           VerticalAlignment="Center" />
-            </StackPanel>
-        </DockPanel>
-    </Grid>
+    </Border>
 </Window>

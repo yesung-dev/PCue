@@ -17,6 +17,58 @@ public partial class MainWindow : Window
         _viewModel = new MainViewModel(_media);
         DataContext = _viewModel;
         Closed += OnClosed;
+        StateChanged += (_, _) =>
+        {
+            UpdateMaximizeGlyph();
+            UpdateCornerRadius();
+        };
+        UpdateMaximizeGlyph();
+        UpdateCornerRadius();
+    }
+
+    private void TitleBar_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximize();
+            return;
+        }
+
+        if (e.LeftButton == MouseButtonState.Pressed)
+            DragMove();
+    }
+
+    private void Minimize_OnClick(object sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void Maximize_OnClick(object sender, RoutedEventArgs e)
+        => ToggleMaximize();
+
+    private void Close_OnClick(object sender, RoutedEventArgs e)
+        => Close();
+
+    private void ToggleMaximize()
+        => WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+
+    private void UpdateMaximizeGlyph()
+    {
+        if (MaximizeButton is null)
+            return;
+
+        MaximizeButton.Content = WindowState == WindowState.Maximized ? "❐" : "□";
+        MaximizeButton.ToolTip = WindowState == WindowState.Maximized ? "이전 크기로" : "최대화";
+    }
+
+    private void UpdateCornerRadius()
+    {
+        var radius = WindowState == WindowState.Maximized ? 0 : 10;
+        RootBorder.CornerRadius = new CornerRadius(radius);
+        TitleBarBorder.CornerRadius = new CornerRadius(radius, radius, 0, 0);
+
+        if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome)
+            chrome.CornerRadius = new CornerRadius(radius);
     }
 
     private void PlaylistBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
