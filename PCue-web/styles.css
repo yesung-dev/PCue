@@ -1,14 +1,14 @@
 :root {
   --bg: #0b0e13;
   --chrome: #12161d;
-  --panel: #12161d;
-  --panel-alt: #181d26;
-  --border: #2a3340;
+  --panel: #181d26;
+  --hover: #1f2630;
+  --line: #2a3340;
   --text: #e8eef4;
   --muted: #8b97a8;
   --accent: #3dd6c6;
-  --accent-dim: #1a3d3a;
-  --live: #e24b5a;
+  --accent-hover: #5fe3d5;
+  --on-accent: #0b0e13;
   --font: Pretendard, "Segoe UI", sans-serif;
 }
 
@@ -17,7 +17,9 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(61, 214, 198, 0.08), transparent 60%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-size: 15px;
@@ -31,9 +33,13 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 22px;
-  background: var(--chrome);
-  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  background: color-mix(in srgb, var(--chrome) 92%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .brand {
@@ -41,25 +47,13 @@ a { color: inherit; }
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .brand img {
   border-radius: 5px;
   display: block;
-}
-
-.brand-name {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.brand-meta {
-  margin-left: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--muted);
 }
 
 nav {
@@ -69,52 +63,61 @@ nav {
   color: var(--muted);
 }
 
-nav a { text-decoration: none; }
+nav a {
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
 nav a:hover { color: var(--text); }
 
 main {
-  max-width: 880px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 56px 22px 80px;
+  padding: 72px 22px 88px;
 }
 
-.hero { text-align: center; }
+.hero {
+  text-align: center;
+  animation: rise 0.55s ease both;
+}
 
-.hero-kicker {
+.hero-brand {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
-.pill {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 3px 8px;
-  border-radius: 2px;
-}
-
-.pill.cue { color: var(--accent); border: 1px solid var(--accent); }
-.pill.live { color: #fff; background: var(--live); }
-.pill.out { color: var(--muted); border: 1px solid var(--border); }
-
-.hero-banner {
+.hero-brand img {
+  border-radius: 12px;
   display: block;
-  width: min(360px, 86%);
-  height: auto;
-  margin: 0 auto 28px;
-  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.hero-brand h1 {
+  margin: 0;
+  font-size: clamp(40px, 8vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.tagline {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--accent);
 }
 
 .lede {
-  max-width: 540px;
   margin: 0 auto 28px;
-  color: #c5ced8;
-  font-size: 16px;
+  max-width: 420px;
+  color: var(--muted);
+  font-size: 15px;
 }
 
-.hero-actions {
+.actions {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -126,82 +129,79 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
+  height: 42px;
   padding: 0 20px;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
   border-radius: 6px;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .btn-primary {
   background: var(--accent);
-  color: #0b0e13;
+  color: var(--on-accent);
 }
 
-.btn-primary:hover { background: #5fe3d5; }
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
 
 .btn-ghost {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--line);
   color: var(--text);
 }
 
-.btn-ghost:hover { background: #1f2630; }
+.btn-ghost:hover { background: var(--hover); }
 
 .hint {
-  margin-top: 14px;
+  margin: 14px 0 0;
   font-size: 12px;
   color: var(--muted);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 56px;
+.features {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  animation: rise 0.55s ease 0.08s both;
 }
 
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
+.feature {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.card .stripe { height: 3px; }
-.card-playlist .stripe { background: var(--accent); }
-.card-control .stripe { background: #5b8def; }
-.card-out .stripe { background: #6e7a8a; }
-
-.card h2 {
-  margin: 16px 16px 8px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+.feature h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
 }
 
-.card-playlist h2 { color: var(--accent); }
-.card-control h2 { color: #8bb0ff; }
-
-.card p {
-  margin: 0 16px 18px;
-  font-size: 13px;
-  color: #a3aebc;
+.feature p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .note {
-  margin-top: 28px;
-  padding: 20px 22px;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  margin-top: 36px;
+  padding: 20px 0 0;
+  animation: rise 0.55s ease 0.14s both;
 }
 
 .note h2 {
   margin: 0 0 8px;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--muted);
-  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .note p {
@@ -211,17 +211,36 @@ main {
 }
 
 footer {
-  border-top: 1px solid var(--border);
-  padding: 18px 22px 28px;
+  border-top: 1px solid var(--line);
+  padding: 20px 22px 32px;
   text-align: center;
   font-size: 12px;
   color: var(--muted);
 }
 
-footer a { color: var(--muted); text-decoration: none; }
+footer a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
 footer a:hover { color: var(--text); }
+
 .sep { margin: 0 6px; }
 
-@media (max-width: 720px) {
-  .grid { grid-template-columns: 1fr; }
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 520px) {
+  main { padding-top: 48px; }
+  .hero-brand { gap: 10px; }
+  .hero-brand img { width: 44px; height: 44px; }
 }

@@ -11,6 +11,7 @@
     <RootNamespace>PCue</RootNamespace>
     <AssemblyName>PCue</AssemblyName>
     <ApplicationIcon>Assets\Images\favicon.ico</ApplicationIcon>
+    <StartupObject>PCue.Program</StartupObject>
     <VlcWindowsX64Enabled>true</VlcWindowsX64Enabled>
     <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
     <VlcWindowsArm64Enabled>false</VlcWindowsArm64Enabled>
@@ -20,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.10.1" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.24" />
   </ItemGroup>
 
