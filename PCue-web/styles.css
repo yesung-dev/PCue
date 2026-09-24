@@ -56,6 +56,12 @@ a { color: inherit; }
   display: block;
 }
 
+.brand-ko {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
 nav {
   display: flex;
   gap: 18px;
@@ -95,12 +101,27 @@ main {
   box-shadow: 0 0 0 1px var(--line);
 }
 
+.hero-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
 .hero-brand h1 {
   margin: 0;
   font-size: clamp(40px, 8vw, 56px);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
+}
+
+.hero-ko {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
 }
 
 .tagline {

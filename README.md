@@ -1,4 +1,4 @@
-# PCue
+# PCue (피큐)
 
 현장용 음원/영상 재생기 (WPF + LibVLCSharp).
 

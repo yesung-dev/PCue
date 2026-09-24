@@ -8,6 +8,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationTitle>PCue</ApplicationTitle>
+    <Product>PCue</Product>
+    <Description>피큐 — 현장용 음원·영상 재생기</Description>
     <RootNamespace>PCue</RootNamespace>
     <AssemblyName>PCue</AssemblyName>
     <ApplicationIcon>Assets\Images\favicon.ico</ApplicationIcon>

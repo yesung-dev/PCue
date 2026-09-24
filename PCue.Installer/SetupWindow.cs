@@ -17,7 +17,7 @@ public sealed class SetupWindow : Window
 
     public SetupWindow()
     {
-        Title = "PCue 설치";
+        Title = "피큐 설치";
         Icon = BitmapFrame.Create(new Uri("pack://application:,,,/Logo_B.png", UriKind.Absolute));
         Width = 460;
         SizeToContent = SizeToContent.Height;
@@ -48,7 +48,7 @@ public sealed class SetupWindow : Window
 
         _launchCheck = new CheckBox
         {
-            Content = "설치가 끝나면 PCue 실행",
+            Content = "설치가 끝나면 피큐 실행",
             IsChecked = true,
             Foreground = Brush("#E8EEF4"),
             Margin = new Thickness(0, 0, 0, 18)
@@ -132,6 +132,14 @@ public sealed class SetupWindow : Window
         });
         titleRow.Children.Add(new TextBlock
         {
+            Text = "피큐",
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(6, 1, 0, 0),
+            Foreground = Brush("#8B97A8"),
+            FontSize = 11
+        });
+        titleRow.Children.Add(new TextBlock
+        {
             Text = "설치",
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(8, 1, 0, 0),
@@ -152,7 +160,7 @@ public sealed class SetupWindow : Window
         var body = new StackPanel { Margin = new Thickness(20) };
         body.Children.Add(new TextBlock
         {
-            Text = "PCue를 이 컴퓨터에 설치합니다.",
+            Text = "피큐를 이 컴퓨터에 설치합니다.",
             Margin = new Thickness(0, 0, 0, 16),
             FontSize = 14
         });

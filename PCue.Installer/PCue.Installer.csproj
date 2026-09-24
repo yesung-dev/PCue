@@ -9,7 +9,7 @@
     <AssemblyName>PCue-Setup</AssemblyName>
     <RootNamespace>PCue.Installer</RootNamespace>
     <Product>PCue</Product>
-    <AssemblyTitle>PCue 설치</AssemblyTitle>
+    <AssemblyTitle>피큐 설치</AssemblyTitle>
     <StartupObject>PCue.Installer.Program</StartupObject>
     <ApplicationIcon>..\PCue\Assets\Images\favicon.ico</ApplicationIcon>
   </PropertyGroup>
