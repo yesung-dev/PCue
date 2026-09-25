@@ -21,6 +21,8 @@ public partial class MainViewModel : ObservableObject, IDisposable
 
     public bool HasPlaylistItems => Playlist.Count > 0;
 
+    public int PlaylistCount => Playlist.Count;
+
     [ObservableProperty]
     private PlaylistItem? _selectedItem;
 
@@ -91,7 +93,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         };
         _positionTimer.Tick += (_, _) => SyncPositionFromPlayer();
 
-        Playlist.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasPlaylistItems));
+        Playlist.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasPlaylistItems));
+            OnPropertyChanged(nameof(PlaylistCount));
+        };
         RefreshDisplays();
     }
 

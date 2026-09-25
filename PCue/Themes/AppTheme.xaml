@@ -84,6 +84,11 @@
     <sys:String x:Key="GlyphRefresh">&#xE72C;</sys:String>
     <sys:String x:Key="GlyphVolume">&#xE767;</sys:String>
     <sys:String x:Key="GlyphMute">&#xE74F;</sys:String>
+    <sys:String x:Key="GlyphPlay">&#xE768;</sys:String>
+    <sys:String x:Key="GlyphPause">&#xE769;</sys:String>
+    <sys:String x:Key="GlyphStop">&#xE71A;</sys:String>
+    <sys:String x:Key="GlyphPrevious">&#xE892;</sys:String>
+    <sys:String x:Key="GlyphNext">&#xE893;</sys:String>
     <sys:String x:Key="GlyphChromeMinimize">&#xE921;</sys:String>
     <sys:String x:Key="GlyphChromeMaximize">&#xE922;</sys:String>
     <sys:String x:Key="GlyphChromeRestore">&#xE923;</sys:String>
@@ -127,28 +132,31 @@
     </Style>
 
     <Style x:Key="TransportButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="MinWidth" Value="72" />
-        <Setter Property="Height" Value="44" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinWidth" Value="78" />
+        <Setter Property="Height" Value="42" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="Margin" Value="0,0,8,0" />
-    </Style>
-
-    <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource TransportButton}">
-        <Setter Property="Background" Value="{StaticResource Accent}" />
-        <Setter Property="Foreground" Value="{StaticResource TextOnAccent}" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="Background" Value="{StaticResource BgElevated}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="6"
+                            BorderBrush="{StaticResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="7"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentHover}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource BgHover}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="#FF3A4556" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource BgDeep}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -157,6 +165,52 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource TransportButton}">
+        <Setter Property="MinWidth" Value="92" />
+        <Setter Property="Background" Value="{StaticResource Accent}" />
+        <Setter Property="Foreground" Value="{StaticResource TextOnAccent}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="7"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentHover}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentPressed}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="StatusChip" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BgElevated}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="SectionLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
     </Style>
 
     <Style x:Key="CaptionButton" TargetType="Button">

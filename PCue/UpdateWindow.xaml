@@ -34,18 +34,25 @@
                     Background="{StaticResource BgPanel}"
                     BorderBrush="{StaticResource Line}"
                     BorderThickness="0,0,0,1">
-                <TextBlock Text="업데이트"
-                           VerticalAlignment="Center"
-                           Margin="16,0,0,0"
-                           FontWeight="SemiBold"
-                           FontSize="13" />
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <Image Source="pack://application:,,,/Assets/Images/Logo_B.png"
+                           Width="16"
+                           Height="16"
+                           Margin="0,0,8,0"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <TextBlock Text="업데이트"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               FontSize="13" />
+                </StackPanel>
             </Border>
 
             <StackPanel Margin="20">
                 <TextBlock x:Name="MessageText"
                            TextWrapping="Wrap"
                            Margin="0,0,0,16"
-                           FontSize="14" />
+                           FontSize="14"
+                           LineHeight="22" />
 
                 <TextBlock x:Name="BusyText"
                            Text="업데이트를 받는 중입니다. 끝날 때까지 프로그램을 종료할 수 없습니다."
@@ -83,21 +90,20 @@
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">
                     <Button Content="다음에"
+                            Style="{StaticResource TransportButton}"
                             Width="96"
-                            Height="32"
+                            Height="34"
+                            MinWidth="96"
                             Margin="0,0,8,0"
-                            Click="Later_OnClick"
-                            Background="{StaticResource BgElevated}"
-                            Foreground="{StaticResource TextPrimary}" />
+                            Click="Later_OnClick" />
                     <Button x:Name="UpdateButton"
                             Content="지금 업데이트"
-                            Width="120"
-                            Height="32"
+                            Style="{StaticResource PlayButton}"
+                            Width="128"
+                            Height="34"
+                            MinWidth="128"
                             Margin="0"
-                            Click="Update_OnClick"
-                            Background="{StaticResource Accent}"
-                            Foreground="{StaticResource TextOnAccent}"
-                            FontWeight="SemiBold" />
+                            Click="Update_OnClick" />
                 </StackPanel>
             </StackPanel>
         </DockPanel>
