@@ -93,6 +93,13 @@ public partial class MainWindow : Window
                 _viewModel.RemoveSelectedCommand.Execute(null);
                 e.Handled = true;
                 break;
+            case Key.Escape:
+                if (_viewModel.IsOutputEnabled)
+                {
+                    _viewModel.IsOutputEnabled = false;
+                    e.Handled = true;
+                }
+                break;
         }
     }
 

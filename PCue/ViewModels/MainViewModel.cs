@@ -72,6 +72,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _media.Playing += (_, _) =>
         {
             StatusText = "재생 중";
+            SyncOutputSurface();
             StartPositionTimer();
         };
         _media.Paused += (_, _) =>
@@ -85,6 +86,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             StopPositionTimer();
             if (_currentIndex < 0)
                 StatusText = "정지";
+            SyncOutputSurface();
         };
 
         _positionTimer = new DispatcherTimer(DispatcherPriority.Background)
@@ -295,6 +297,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         PositionMs = 0;
         UpdateTimeText();
         StatusText = "정지";
+        _outputWindow?.SetBlackout(true);
     }
 
     [RelayCommand]
@@ -552,6 +555,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             _outputWindow.AttachMediaPlayer(_media.Player);
             PlaceOutput(SelectedDisplay);
             _outputWindow.Show();
+            SyncOutputSurface();
 
             // Return focus to control window.
             System.Windows.Application.Current.MainWindow?.Activate();
@@ -559,6 +563,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         else
         {
             PlaceOutput(SelectedDisplay);
+            SyncOutputSurface();
         }
 
         SetOutputEnabledSafe(true);
@@ -619,9 +624,33 @@ public partial class MainViewModel : ObservableObject, IDisposable
         PositionMs = 0;
         DurationMs = item.DurationMs > 0 ? item.DurationMs : 0;
         UpdateTimeText();
+
+        // Cover last frame / audio-only so the projector never flashes the previous cue.
+        _outputWindow?.BeginCueTransition();
         _media.PlayFile(item.FilePath);
         StatusText = $"재생: {item.DisplayName}";
         StartPositionTimer();
+    }
+
+    /// <summary>
+    /// Video surface: black for audio / stopped; show frames only while a video cue is active.
+    /// </summary>
+    private void SyncOutputSurface()
+    {
+        if (_outputWindow is null)
+            return;
+
+        PlaylistItem? item = null;
+        if (_currentIndex >= 0 && _currentIndex < Playlist.Count)
+            item = Playlist[_currentIndex];
+
+        if (item is null || item.SourceType != "영상" || !_media.IsPlaying)
+        {
+            _outputWindow.SetBlackout(true);
+            return;
+        }
+
+        _outputWindow.SetBlackout(false);
     }
 
     private void OnEndReached(object? sender, EventArgs e)
@@ -638,6 +667,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             ClearPlayingFlags();
             StatusText = "재생 완료";
+            _outputWindow?.SetBlackout(true);
             return;
         }
 
@@ -649,6 +679,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             ClearPlayingFlags();
             _currentIndex = -1;
             StatusText = "목록 끝";
+            _outputWindow?.SetBlackout(true);
         }
     }
 

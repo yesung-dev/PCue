@@ -7,6 +7,14 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         Background="#0B0E13"
-        Topmost="True">
-    <vlc:VideoView x:Name="VideoView" />
+        Topmost="True"
+        Cursor="None">
+    <Grid Background="#0B0E13">
+        <vlc:VideoView x:Name="VideoView" />
+        <!-- Covers the HWND surface during cue transitions / audio-only playback -->
+        <Border x:Name="Blackout"
+                Background="#0B0E13"
+                Visibility="Collapsed"
+                IsHitTestVisible="False" />
+    </Grid>
 </Window>
