@@ -55,6 +55,8 @@ public sealed class MediaPlayerService : IDisposable
 
     public bool IsPlaying => _mediaPlayer.IsPlaying;
 
+    public bool IsPaused => _mediaPlayer.State == VLCState.Paused;
+
     public MediaPlayerService()
     {
         _libVlc = new LibVLC(
@@ -72,13 +74,27 @@ public sealed class MediaPlayerService : IDisposable
         _mediaPlayer.Stopped += (_, _) => RaiseOnUi(Stopped);
     }
 
-    public void PlayFile(string filePath)
+    /// <param name="options">LibVLC media options, e.g. ":start-time=12.5".</param>
+    public void PlayFile(string filePath, IEnumerable<string>? options = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _currentMedia?.Dispose();
         _currentMedia = new Media(_libVlc, filePath, FromType.FromPath);
+        if (options is not null)
+        {
+            foreach (var option in options)
+                _currentMedia.AddOption(option);
+        }
+
         _mediaPlayer.Play(_currentMedia);
+    }
+
+    /// <summary>Idempotent, unlike <see cref="Pause"/> which toggles in LibVLC.</summary>
+    public void SetPause(bool pause)
+    {
+        if (_mediaPlayer.Media is not null)
+            _mediaPlayer.SetPause(pause);
     }
 
     public void Play()
@@ -146,7 +162,13 @@ public sealed class MediaPlayerService : IDisposable
     private void OnEndReached(object? sender, EventArgs e)
     {
         // LibVLC callbacks are not on the UI thread; marshal EndReached.
-        _dispatcher.BeginInvoke(() => EndReached?.Invoke(this, EventArgs.Empty));
+        // Drop it if another file was started before the dispatcher got here.
+        var media = _currentMedia;
+        _dispatcher.BeginInvoke(() =>
+        {
+            if (!_disposed && ReferenceEquals(media, _currentMedia))
+                EndReached?.Invoke(this, EventArgs.Empty);
+        });
     }
 
     private void RaiseOnUi(EventHandler? handler)

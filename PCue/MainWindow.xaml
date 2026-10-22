@@ -5,13 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:vm="clr-namespace:PCue.ViewModels"
+        xmlns:views="clr-namespace:PCue.Views"
+        xmlns:models="clr-namespace:PCue.Models"
         mc:Ignorable="d"
         Title="PCue — 피큐"
         Icon="pack://application:,,,/Assets/Images/favicon.ico"
-        Height="700"
-        Width="1000"
+        Height="720"
+        Width="1120"
         MinHeight="520"
-        MinWidth="780"
+        MinWidth="900"
         WindowStyle="None"
         ResizeMode="CanResize"
         AllowsTransparency="True"
@@ -20,6 +22,7 @@
         FontFamily="{StaticResource AppFont}"
         Focusable="True"
         PreviewKeyDown="Window_OnPreviewKeyDown"
+        PreviewMouseDown="Window_OnPreviewMouseDown"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="48"
@@ -115,6 +118,7 @@
                                        Foreground="{StaticResource TextMuted}"
                                        FontSize="11"
                                        TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding StatusText}"
                                        IsHitTestVisible="False" />
                         </Border>
                     </StackPanel>
@@ -128,177 +132,613 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- Playlist panel -->
-                <Border Grid.Row="0"
-                        Background="{StaticResource BgPanel}"
-                        BorderBrush="{StaticResource Line}"
-                        BorderThickness="1"
-                        CornerRadius="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                        <Border Grid.Row="0"
-                                BorderBrush="{StaticResource Line}"
-                                BorderThickness="0,0,0,1"
-                                Padding="14,11">
-                            <DockPanel LastChildFill="False">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="재생 목록"
+                    <!-- Playlist panel -->
+                    <Border Grid.Column="0"
+                            Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0"
+                                    BorderBrush="{StaticResource Line}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="14,11">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <CheckBox Content="자동 다음"
+                                                  IsChecked="{Binding AutoAdvance}"
+                                                  FontSize="12"
+                                                  Margin="0,0,12,0"
+                                                  ToolTip="큐가 끝나면 다음 큐를 재생합니다 ('끝나면'이 기본인 큐에 적용)" />
+                                        <Border Width="1" Height="18" Background="{StaticResource Line}" Margin="0,0,12,0" />
+                                        <Button Style="{StaticResource ToolButton}"
+                                                Command="{Binding AddFilesCommand}"
+                                                ToolTip="추가">
+                                            <TextBlock Style="{StaticResource IconGlyph}"
+                                                       Text="{StaticResource GlyphAdd}"
+                                                       Foreground="{StaticResource Accent}" />
+                                        </Button>
+                                        <Button Style="{StaticResource ToolButton}"
+                                                Command="{Binding RemoveSelectedCommand}"
+                                                ToolTip="제거">
+                                            <TextBlock Style="{StaticResource IconGlyph}"
+                                                       Text="{StaticResource GlyphRemove}"
+                                                       Foreground="{StaticResource Danger}" />
+                                        </Button>
+                                        <Button Style="{StaticResource ToolButton}"
+                                                Command="{Binding MoveUpCommand}"
+                                                ToolTip="위로">
+                                            <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphUp}" />
+                                        </Button>
+                                        <Button Style="{StaticResource ToolButton}"
+                                                Command="{Binding MoveDownCommand}"
+                                                ToolTip="아래로">
+                                            <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphDown}" />
+                                        </Button>
+                                        <Button Command="{Binding ToggleCuePanelCommand}"
+                                                Margin="0">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ToolButton}">
+                                                    <Setter Property="ToolTip" Value="큐 설정 열기" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCuePanelOpen}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                                                            <Setter Property="ToolTip" Value="큐 설정 닫기" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                            <TextBlock Text="{StaticResource GlyphSettings}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource IconGlyph}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCuePanelOpen}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ClipToBounds="True">
+                                        <TextBlock Text="재생 목록"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" />
+                                        <Border Background="{StaticResource BgElevated}"
+                                                CornerRadius="8"
+                                                Padding="7,1"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding PlaylistCount}"
+                                                       FontFamily="{StaticResource MonoFont}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextMuted}" />
+                                        </Border>
+
+                                        <!-- Next pending schedule; click selects that cue. -->
+                                        <Border CornerRadius="5"
+                                                Padding="8,3"
+                                                Margin="10,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Cursor="Hand"
+                                                ToolTip="{Binding NextScheduleTooltip}"
+                                                Visibility="{Binding HasPendingSchedule, Converter={StaticResource BoolToVisibility}}">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding SelectNextScheduledCommand}" />
+                                            </Border.InputBindings>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                                                    <Setter Property="TextElement.Foreground" Value="{StaticResource Accent}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsNextScheduleImminent}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource Accent}" />
+                                                            <Setter Property="TextElement.Foreground" Value="{StaticResource TextOnAccent}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{StaticResource GlyphClock}"
+                                                           FontFamily="{StaticResource IconFont}"
+                                                           FontSize="12"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,6,0" />
+                                                <TextBlock Text="다음 예약"
+                                                           FontSize="11"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,6,0" />
+                                                <TextBlock Text="{Binding NextScheduleText}"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock Text="파일을 끌어다 놓아 추가"
+                                                   Foreground="{StaticResource TextMuted}"
+                                                   FontSize="12"
+                                                   VerticalAlignment="Center"
+                                                   Margin="12,0,0,0"
+                                                   Visibility="{Binding HasPendingSchedule, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <ListBox x:Name="PlaylistBox"
+                                     Grid.Row="1"
+                                     Margin="6,4,6,8"
+                                     ItemsSource="{Binding Playlist}"
+                                     SelectedItem="{Binding SelectedItem}"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     AllowDrop="True"
+                                     DragOver="PlaylistBox_OnDragOver"
+                                     Drop="PlaylistBox_OnDrop"
+                                     MouseDoubleClick="PlaylistBox_OnMouseDoubleClick">
+                                <ListBox.Style>
+                                    <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+                                        <Setter Property="BorderThickness" Value="0" />
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </Style>
+                                </ListBox.Style>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type models:PlaylistItem}">
+                                        <Grid MinHeight="42" Margin="0">
+                                            <Border x:Name="PlayBg" Background="Transparent" CornerRadius="5" Margin="2,1" />
+                                            <Border x:Name="AccentBar"
+                                                    Width="3"
+                                                    Margin="2,5,0,5"
+                                                    HorizontalAlignment="Left"
+                                                    Background="Transparent"
+                                                    CornerRadius="2" />
+                                            <DockPanel Margin="14,8,12,8">
+                                                <TextBlock Text="{Binding Number, StringFormat={}{0:00}}"
+                                                           DockPanel.Dock="Left"
+                                                           MinWidth="28"
+                                                           Foreground="{StaticResource TextMuted}"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           FontSize="12"
+                                                           VerticalAlignment="Center" />
+                                                <Border x:Name="TypeChip"
+                                                        DockPanel.Dock="Left"
+                                                        Background="{StaticResource BgElevated}"
+                                                        CornerRadius="4"
+                                                        Padding="7,2"
+                                                        Margin="0,0,10,0"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock x:Name="TypeText"
+                                                               Text="{Binding SourceType}"
+                                                               FontSize="10"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource TextMuted}" />
+                                                </Border>
+                                                <TextBlock Text="{Binding ListDurationText}"
+                                                           DockPanel.Dock="Right"
+                                                           MinWidth="52"
+                                                           TextAlignment="Right"
+                                                           Foreground="{StaticResource TextMuted}"
+                                                           FontFamily="{StaticResource MonoFont}"
+                                                           FontSize="12"
+                                                           VerticalAlignment="Center"
+                                                           Margin="12,0,0,0"
+                                                           ToolTip="{Binding PlayLengthText}" />
+
+                                                <!-- Per-cue setting badges -->
+                                                <StackPanel DockPanel.Dock="Right"
+                                                            Orientation="Horizontal"
+                                                            VerticalAlignment="Center"
+                                                            Margin="8,0,0,0">
+                                                    <Border Style="{StaticResource RowBadge}"
+                                                            ToolTip="{Binding TrimText}"
+                                                            Visibility="{Binding HasTrim, Converter={StaticResource BoolToVisibility}}">
+                                                        <TextBlock Style="{StaticResource RowBadgeText}" Text="구간" />
+                                                    </Border>
+                                                    <Border Style="{StaticResource RowBadge}"
+                                                            ToolTip="{Binding FadeSummary}"
+                                                            Visibility="{Binding HasFade, Converter={StaticResource BoolToVisibility}}">
+                                                        <TextBlock Style="{StaticResource RowBadgeText}" Text="페이드" />
+                                                    </Border>
+                                                    <Border Style="{StaticResource RowBadge}"
+                                                            ToolTip="{Binding EndActionTooltip}"
+                                                            Visibility="{Binding HasEndActionBadge, Converter={StaticResource BoolToVisibility}}">
+                                                        <TextBlock Style="{StaticResource RowBadgeText}" Text="{Binding EndActionBadge}" />
+                                                    </Border>
+                                                    <Border ToolTip="{Binding ScheduleTooltip}"
+                                                            Visibility="{Binding IsScheduled, Converter={StaticResource BoolToVisibility}}">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border" BasedOn="{StaticResource RowBadge}">
+                                                                <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                                                                <Setter Property="BorderBrush" Value="{StaticResource AccentDim}" />
+                                                                <Setter Property="TextElement.Foreground" Value="{StaticResource Accent}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsScheduleImminent}" Value="True">
+                                                                        <Setter Property="Background" Value="{StaticResource Accent}" />
+                                                                        <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                                                                        <Setter Property="TextElement.Foreground" Value="{StaticResource TextOnAccent}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{StaticResource GlyphClock}"
+                                                                       FontFamily="{StaticResource IconFont}"
+                                                                       FontSize="10"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,4,0" />
+                                                            <TextBlock Text="{Binding ScheduleCountdown}"
+                                                                       FontFamily="{StaticResource MonoFont}"
+                                                                       FontSize="11"
+                                                                       FontWeight="SemiBold"
+                                                                       VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="13"
+                                                           ToolTip="{Binding FilePath}" />
+                                            </DockPanel>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                                <Setter TargetName="PlayBg" Property="Background" Value="{StaticResource AccentDim}" />
+                                                <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource Accent}" />
+                                                <Setter TargetName="TypeChip" Property="Background" Value="{StaticResource Accent}" />
+                                                <Setter TargetName="TypeText" Property="Foreground" Value="{StaticResource TextOnAccent}" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <StackPanel Grid.Row="1"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsHitTestVisible="False">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasPlaylistItems}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="재생 목록이 비어 있습니다"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextMuted}"
+                                           FontSize="13"
+                                           FontWeight="Medium" />
+                                <TextBlock Text="파일을 추가하거나 끌어다 놓으세요"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{StaticResource TextFaint}"
+                                           FontSize="12"
+                                           Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Cue settings panel (selected cue) -->
+                    <Border Grid.Column="1"
+                            Width="300"
+                            Margin="10,0,0,0"
+                            Background="{StaticResource BgPanel}"
+                            BorderBrush="{StaticResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Visibility="{Binding IsCuePanelOpen, Converter={StaticResource BoolToVisibility}}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0"
+                                    BorderBrush="{StaticResource Line}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="14,11">
+                                <DockPanel MinHeight="34">
+                                    <Button DockPanel.Dock="Right"
+                                            Style="{StaticResource IconButton}"
+                                            Command="{Binding ToggleCuePanelCommand}"
+                                            ToolTip="큐 설정 닫기"
+                                            Width="30"
+                                            Height="30"
+                                            Margin="0">
+                                        <TextBlock Style="{StaticResource IconGlyph}"
+                                                   Text="{StaticResource GlyphChromeClose}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource TextMuted}" />
+                                    </Button>
+                                    <TextBlock Text="큐 설정"
                                                FontSize="13"
                                                FontWeight="SemiBold"
                                                VerticalAlignment="Center" />
-                                    <Border Background="{StaticResource BgElevated}"
-                                            CornerRadius="8"
-                                            Padding="7,1"
-                                            Margin="8,0,0,0"
-                                            VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding PlaylistCount}"
-                                                   FontFamily="{StaticResource MonoFont}"
-                                                   FontSize="11"
-                                                   Foreground="{StaticResource TextMuted}" />
-                                    </Border>
-                                    <TextBlock Text="파일을 끌어다 놓아 추가"
-                                               Foreground="{StaticResource TextMuted}"
-                                               FontSize="12"
-                                               VerticalAlignment="Center"
-                                               Margin="12,0,0,0" />
-                                </StackPanel>
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button Style="{StaticResource ToolButton}"
-                                            Command="{Binding AddFilesCommand}"
-                                            ToolTip="추가">
-                                        <TextBlock Style="{StaticResource IconGlyph}"
-                                                   Text="{StaticResource GlyphAdd}"
-                                                   Foreground="{StaticResource Accent}" />
-                                    </Button>
-                                    <Button Style="{StaticResource ToolButton}"
-                                            Command="{Binding RemoveSelectedCommand}"
-                                            ToolTip="제거">
-                                        <TextBlock Style="{StaticResource IconGlyph}"
-                                                   Text="{StaticResource GlyphRemove}"
-                                                   Foreground="{StaticResource Danger}" />
-                                    </Button>
-                                    <Button Style="{StaticResource ToolButton}"
-                                            Command="{Binding MoveUpCommand}"
-                                            ToolTip="위로">
-                                        <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphUp}" />
-                                    </Button>
-                                    <Button Style="{StaticResource ToolButton}"
-                                            Command="{Binding MoveDownCommand}"
-                                            ToolTip="아래로"
-                                            Margin="0">
-                                        <TextBlock Style="{StaticResource IconGlyph}" Text="{StaticResource GlyphDown}" />
-                                    </Button>
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
+                                </DockPanel>
+                            </Border>
 
-                        <ListBox x:Name="PlaylistBox"
-                                 Grid.Row="1"
-                                 Margin="6,4,6,8"
-                                 ItemsSource="{Binding Playlist}"
-                                 SelectedItem="{Binding SelectedItem}"
-                                 BorderThickness="0"
-                                 Background="Transparent"
-                                 AllowDrop="True"
-                                 DragOver="PlaylistBox_OnDragOver"
-                                 Drop="PlaylistBox_OnDrop"
-                                 MouseDoubleClick="PlaylistBox_OnMouseDoubleClick">
-                            <ListBox.Style>
-                                <Style TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
-                                    <Setter Property="BorderThickness" Value="0" />
-                                    <Setter Property="Background" Value="Transparent" />
-                                </Style>
-                            </ListBox.Style>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid MinHeight="42" Margin="0">
-                                        <Border x:Name="PlayBg" Background="Transparent" CornerRadius="5" Margin="2,1" />
-                                        <Border x:Name="AccentBar"
-                                                Width="3"
-                                                Margin="2,5,0,5"
-                                                HorizontalAlignment="Left"
-                                                Background="Transparent"
-                                                CornerRadius="2" />
-                                        <DockPanel Margin="14,8,12,8">
-                                            <TextBlock Text="{Binding Number, StringFormat={}{0:00}}"
-                                                       DockPanel.Dock="Left"
-                                                       MinWidth="28"
-                                                       Foreground="{StaticResource TextMuted}"
-                                                       FontFamily="{StaticResource MonoFont}"
-                                                       FontSize="12"
-                                                       VerticalAlignment="Center" />
-                                            <Border x:Name="TypeChip"
-                                                    DockPanel.Dock="Left"
-                                                    Background="{StaticResource BgElevated}"
-                                                    CornerRadius="4"
-                                                    Padding="7,2"
-                                                    Margin="0,0,10,0"
-                                                    VerticalAlignment="Center">
-                                                <TextBlock x:Name="TypeText"
-                                                           Text="{Binding SourceType}"
-                                                           FontSize="10"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="{StaticResource TextMuted}" />
-                                            </Border>
-                                            <TextBlock Text="{Binding DurationText}"
-                                                       DockPanel.Dock="Right"
-                                                       MinWidth="52"
-                                                       TextAlignment="Right"
-                                                       Foreground="{StaticResource TextMuted}"
-                                                       FontFamily="{StaticResource MonoFont}"
-                                                       FontSize="12"
-                                                       VerticalAlignment="Center"
-                                                       Margin="12,0,0,0" />
-                                            <TextBlock Text="{Binding DisplayName}"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="13"
-                                                       ToolTip="{Binding FilePath}" />
-                                        </DockPanel>
-                                    </Grid>
-                                    <DataTemplate.Triggers>
-                                        <DataTrigger Binding="{Binding IsPlaying}" Value="True">
-                                            <Setter TargetName="PlayBg" Property="Background" Value="{StaticResource AccentDim}" />
-                                            <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource Accent}" />
-                                            <Setter TargetName="TypeChip" Property="Background" Value="{StaticResource Accent}" />
-                                            <Setter TargetName="TypeText" Property="Foreground" Value="{StaticResource TextOnAccent}" />
-                                        </DataTrigger>
-                                    </DataTemplate.Triggers>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-
-                        <StackPanel Grid.Row="1"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    IsHitTestVisible="False">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasPlaylistItems}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="재생 목록이 비어 있습니다"
-                                       HorizontalAlignment="Center"
+                            <TextBlock Grid.Row="1"
+                                       Text="재생 목록에서 큐를 선택하세요"
                                        Foreground="{StaticResource TextMuted}"
-                                       FontSize="13"
-                                       FontWeight="Medium" />
-                            <TextBlock Text="파일을 추가하거나 끌어다 놓으세요"
-                                       HorizontalAlignment="Center"
-                                       Foreground="#FF5C6A7A"
                                        FontSize="12"
-                                       Margin="0,6,0,0" />
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding SelectedItem, Converter={StaticResource EmptyToCollapsed}, ConverterParameter=Invert}" />
+
+                            <ScrollViewer Grid.Row="1"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          Visibility="{Binding SelectedItem, Converter={StaticResource EmptyToCollapsed}}">
+                                <StackPanel Margin="14,12,12,16">
+                                    <!-- Cue identity -->
+                                    <DockPanel>
+                                        <Border DockPanel.Dock="Left"
+                                                Background="{StaticResource BgElevated}"
+                                                CornerRadius="4"
+                                                Padding="6,1"
+                                                Margin="0,0,8,0"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SelectedItem.Number, StringFormat={}{0:00}}"
+                                                       FontFamily="{StaticResource MonoFont}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextMuted}" />
+                                        </Border>
+                                        <TextBlock Text="{Binding SelectedItem.DisplayName}"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"
+                                                   ToolTip="{Binding SelectedItem.FilePath}" />
+                                    </DockPanel>
+                                    <TextBlock Text="{Binding SelectedItem.PlayLengthText}"
+                                               Style="{StaticResource FieldLabel}"
+                                               Margin="0,5,0,0" />
+
+                                    <Border Background="{StaticResource AccentDim}"
+                                            CornerRadius="6"
+                                            Padding="10,7"
+                                            Margin="0,10,0,0"
+                                            Visibility="{Binding IsSelectedCueActive, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="재생 중인 큐입니다. 시작 지점과 반복 설정은 다음 재생부터 적용됩니다."
+                                                   Foreground="{StaticResource Accent}"
+                                                   FontSize="12"
+                                                   LineHeight="17"
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+
+                                    <TextBlock Text="{Binding CueEditMessage}"
+                                               Style="{StaticResource ErrorText}"
+                                               Margin="0,10,0,0"
+                                               Visibility="{Binding CueEditMessage, Converter={StaticResource EmptyToCollapsed}}" />
+
+                                    <!-- In / out points -->
+                                    <DockPanel Margin="0,18,0,8">
+                                        <Button DockPanel.Dock="Right"
+                                                Style="{StaticResource LinkButton}"
+                                                Content="구간 초기화"
+                                                Command="{Binding ClearTrimCommand}"
+                                                Visibility="{Binding SelectedItem.HasTrim, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Text="재생 구간" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="38" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="시작" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Row="0"
+                                                 Grid.Column="1"
+                                                 Text="{Binding SelectedItem.InPointText, UpdateSourceTrigger=Explicit}"
+                                                 Tag="처음부터"
+                                                 FontFamily="{StaticResource MonoFont}"
+                                                 views:TextBoxCommit.IsEnabled="True"
+                                                 ToolTip="예: 90 (초), 1:30, 1:30.5 · 비우면 처음부터" />
+                                        <Button Grid.Row="0"
+                                                Grid.Column="2"
+                                                Style="{StaticResource MiniButton}"
+                                                Content="현재 위치"
+                                                Margin="6,0,0,0"
+                                                Command="{Binding SetInPointHereCommand}"
+                                                IsEnabled="{Binding IsSelectedCueActive}"
+                                                ToolTip="지금 재생 위치를 시작 지점으로 (단축키 I) · 이 큐를 재생하거나 일시정지한 상태에서 사용" />
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="종료" Style="{StaticResource FieldLabel}" Margin="0,6,0,0" />
+                                        <TextBox Grid.Row="1"
+                                                 Grid.Column="1"
+                                                 Margin="0,6,0,0"
+                                                 Text="{Binding SelectedItem.OutPointText, UpdateSourceTrigger=Explicit}"
+                                                 Tag="끝까지"
+                                                 FontFamily="{StaticResource MonoFont}"
+                                                 views:TextBoxCommit.IsEnabled="True"
+                                                 ToolTip="예: 3:20, 200 (초) · 비우면 파일 끝까지" />
+                                        <Button Grid.Row="1"
+                                                Grid.Column="2"
+                                                Style="{StaticResource MiniButton}"
+                                                Content="현재 위치"
+                                                Margin="6,6,0,0"
+                                                Command="{Binding SetOutPointHereCommand}"
+                                                IsEnabled="{Binding IsSelectedCueActive}"
+                                                ToolTip="지금 재생 위치를 종료 지점으로 (단축키 O) · 이 큐를 재생하거나 일시정지한 상태에서 사용" />
+                                    </Grid>
+
+                                    <!-- Fades -->
+                                    <TextBlock Text="페이드 (소리)" Style="{StaticResource SectionLabel}" Margin="0,20,0,8" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="38" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="14" />
+                                            <ColumnDefinition Width="38" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="인" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Column="1"
+                                                 Text="{Binding SelectedItem.FadeInText, UpdateSourceTrigger=Explicit}"
+                                                 Tag="없음"
+                                                 FontFamily="{StaticResource MonoFont}"
+                                                 views:TextBoxCommit.IsEnabled="True"
+                                                 ToolTip="시작할 때 소리가 0에서 서서히 커지는 시간 (초)" />
+                                        <TextBlock Grid.Column="2" Text="초" Style="{StaticResource FieldLabel}" Margin="6,0,0,0" />
+
+                                        <TextBlock Grid.Column="4" Text="아웃" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Column="5"
+                                                 Text="{Binding SelectedItem.FadeOutText, UpdateSourceTrigger=Explicit}"
+                                                 Tag="없음"
+                                                 FontFamily="{StaticResource MonoFont}"
+                                                 views:TextBoxCommit.IsEnabled="True">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                    <Setter Property="ToolTip" Value="종료 지점(또는 파일 끝)에 맞춰 소리가 0까지 작아지는 시간 (초)" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedItem.EndAction}" Value="{x:Static models:CueEndAction.Loop}">
+                                                            <Setter Property="IsEnabled" Value="False" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBox.Style>
+                                        </TextBox>
+                                        <TextBlock Grid.Column="6" Text="초" Style="{StaticResource FieldLabel}" Margin="6,0,0,0" />
+                                    </Grid>
+                                    <TextBlock Margin="0,6,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource HintText}">
+                                                <Setter Property="Text" Value="영상 화면은 그대로 두고 소리만 조절합니다." />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedItem.EndAction}" Value="{x:Static models:CueEndAction.Loop}">
+                                                        <Setter Property="Text" Value="반복 재생 중에는 페이드 아웃을 쓰지 않습니다. 끝낼 때는 페이드 정지를 쓰세요." />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!-- End action -->
+                                    <TextBlock Text="끝나면" Style="{StaticResource SectionLabel}" Margin="0,20,0,8" />
+                                    <ComboBox x:Name="EndActionCombo"
+                                              ItemsSource="{Binding EndActionOptions}"
+                                              SelectedValuePath="Value"
+                                              SelectedValue="{Binding SelectedItem.EndAction}"
+                                              Height="32" />
+                                    <TextBlock Text="{Binding SelectedItem.Description, ElementName=EndActionCombo}"
+                                               Style="{StaticResource HintText}"
+                                               Margin="0,6,0,0" />
+
+                                    <!-- Schedule -->
+                                    <TextBlock Text="예약 재생" Style="{StaticResource SectionLabel}" Margin="0,20,0,8" />
+
+                                    <Border Background="{StaticResource AccentDim}"
+                                            CornerRadius="7"
+                                            Padding="12,10"
+                                            Visibility="{Binding SelectedItem.IsScheduled, Converter={StaticResource BoolToVisibility}}">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right"
+                                                    Style="{StaticResource MiniButton}"
+                                                    Content="예약 취소"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding CancelScheduleCommand}" />
+                                            <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="{Binding SelectedItem.ScheduleTooltip}"
+                                                           Foreground="{StaticResource Accent}"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                    <TextBlock Text="남은 시간"
+                                                               Style="{StaticResource FieldLabel}"
+                                                               Margin="0,0,6,0" />
+                                                    <TextBlock Text="{Binding SelectedItem.ScheduleCountdown}"
+                                                               FontFamily="{StaticResource MonoFont}"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+
+                                    <StackPanel Visibility="{Binding SelectedItem.IsScheduled, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                                        <Border Style="{StaticResource SegmentHost}">
+                                            <UniformGrid Columns="2">
+                                                <RadioButton Style="{StaticResource SegmentRadio}"
+                                                             GroupName="ScheduleMode"
+                                                             Content="시간 후"
+                                                             IsChecked="{Binding IsScheduleDelayMode}" />
+                                                <RadioButton Style="{StaticResource SegmentRadio}"
+                                                             GroupName="ScheduleMode"
+                                                             Content="시각 지정"
+                                                             IsChecked="{Binding IsScheduleClockMode}" />
+                                            </UniformGrid>
+                                        </Border>
+                                        <DockPanel Margin="0,8,0,0">
+                                            <Button DockPanel.Dock="Right"
+                                                    Style="{StaticResource AccentMiniButton}"
+                                                    Content="예약"
+                                                    Margin="6,0,0,0"
+                                                    Command="{Binding ScheduleSelectedCommand}" />
+                                            <Grid>
+                                                <TextBox Text="{Binding ScheduleDelayText, UpdateSourceTrigger=PropertyChanged}"
+                                                         Tag="분"
+                                                         FontFamily="{StaticResource MonoFont}"
+                                                         views:TextBoxCommit.IsEnabled="True"
+                                                         views:TextBoxCommit.Command="{Binding ScheduleSelectedCommand}"
+                                                         Visibility="{Binding IsScheduleDelayMode, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBox Text="{Binding ScheduleClockText, UpdateSourceTrigger=PropertyChanged}"
+                                                         Tag="19:30"
+                                                         FontFamily="{StaticResource MonoFont}"
+                                                         views:TextBoxCommit.IsEnabled="True"
+                                                         views:TextBoxCommit.Command="{Binding ScheduleSelectedCommand}"
+                                                         Visibility="{Binding IsScheduleClockMode, Converter={StaticResource BoolToVisibility}}" />
+                                            </Grid>
+                                        </DockPanel>
+                                        <TextBlock Style="{StaticResource HintText}"
+                                                   Margin="0,6,0,0"
+                                                   Text="분 단위 · 예: 10 (10분), 2:30 (2분 30초)"
+                                                   Visibility="{Binding IsScheduleDelayMode, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Style="{StaticResource HintText}"
+                                                   Margin="0,6,0,0"
+                                                   Text="24시간제 · 예: 19:30, 19:30:15 · 지난 시각은 내일로 예약"
+                                                   Visibility="{Binding IsScheduleClockMode, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Text="{Binding ScheduleError}"
+                                                   Style="{StaticResource ErrorText}"
+                                                   Margin="0,6,0,0"
+                                                   Visibility="{Binding ScheduleError, Converter={StaticResource EmptyToCollapsed}}" />
+                                    </StackPanel>
+
+                                    <TextBlock Style="{StaticResource HintText}"
+                                               Margin="0,8,0,0"
+                                               Text="예약 시각이 되면 재생 중인 큐를 끊고 이 큐를 재생합니다. 예약이 남아 있는 동안 PC가 절전 모드로 들어가지 않습니다." />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
 
                 <!-- Transport deck -->
                 <Border Grid.Row="1"
@@ -322,7 +762,7 @@
                                     Margin="12,0,0,0"
                                     VerticalAlignment="Center"
                                     Cursor="Hand"
-                                    ToolTip="경과 시간 ↔ 남은 시간">
+                                    ToolTip="경과 시간 ↔ 남은 시간 (종료 지점 기준)">
                                 <Border.InputBindings>
                                     <MouseBinding MouseAction="LeftClick"
                                                   Command="{Binding ToggleTimeDisplayCommand}" />
@@ -333,26 +773,59 @@
                                            FontWeight="Medium"
                                            Foreground="{StaticResource Accent}" />
                             </Border>
-                            <Slider x:Name="SeekSlider"
-                                    Style="{StaticResource SeekSlider}"
-                                    Minimum="0"
-                                    Maximum="{Binding DurationMs}"
-                                    Value="{Binding PositionMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                    IsSnapToTickEnabled="False"
-                                    LargeChange="1000"
-                                    SmallChange="100"
-                                    PreviewMouseLeftButtonDown="SeekSlider_OnPreviewMouseLeftButtonDown"
-                                    PreviewMouseMove="SeekSlider_OnPreviewMouseMove"
-                                    PreviewMouseLeftButtonUp="SeekSlider_OnPreviewMouseLeftButtonUp"
-                                    LostMouseCapture="SeekSlider_OnLostMouseCapture"
-                                    VerticalAlignment="Center" />
+                            <Grid VerticalAlignment="Center">
+                                <!-- In/out markers sit behind the slider so the thumb passes over them. -->
+                                <Canvas ClipToBounds="True" IsHitTestVisible="False">
+                                    <Rectangle Width="2"
+                                               Height="20"
+                                               Canvas.Top="4"
+                                               RadiusX="1"
+                                               RadiusY="1"
+                                               Fill="{StaticResource Accent}">
+                                        <Canvas.Left>
+                                            <MultiBinding Converter="{StaticResource TimelineMarker}">
+                                                <Binding Path="ActiveInPointMs" />
+                                                <Binding ElementName="SeekSlider" Path="Maximum" />
+                                                <Binding ElementName="SeekSlider" Path="ActualWidth" />
+                                            </MultiBinding>
+                                        </Canvas.Left>
+                                    </Rectangle>
+                                    <Rectangle Width="2"
+                                               Height="20"
+                                               Canvas.Top="4"
+                                               RadiusX="1"
+                                               RadiusY="1"
+                                               Fill="{StaticResource Accent}">
+                                        <Canvas.Left>
+                                            <MultiBinding Converter="{StaticResource TimelineMarker}">
+                                                <Binding Path="ActiveOutPointMs" />
+                                                <Binding ElementName="SeekSlider" Path="Maximum" />
+                                                <Binding ElementName="SeekSlider" Path="ActualWidth" />
+                                            </MultiBinding>
+                                        </Canvas.Left>
+                                    </Rectangle>
+                                </Canvas>
+                                <Slider x:Name="SeekSlider"
+                                        Style="{StaticResource SeekSlider}"
+                                        Minimum="0"
+                                        Maximum="{Binding DurationMs}"
+                                        Value="{Binding PositionMs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        IsSnapToTickEnabled="False"
+                                        LargeChange="1000"
+                                        SmallChange="100"
+                                        PreviewMouseLeftButtonDown="SeekSlider_OnPreviewMouseLeftButtonDown"
+                                        PreviewMouseMove="SeekSlider_OnPreviewMouseMove"
+                                        PreviewMouseLeftButtonUp="SeekSlider_OnPreviewMouseLeftButtonUp"
+                                        LostMouseCapture="SeekSlider_OnLostMouseCapture"
+                                        VerticalAlignment="Center" />
+                            </Grid>
                         </DockPanel>
 
                         <DockPanel Grid.Row="1" LastChildFill="False">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Style="{StaticResource TransportButton}"
                                         Command="{Binding PreviousCommand}"
-                                        ToolTip="이전">
+                                        ToolTip="이전 (Shift+←)">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource IconGlyph}"
                                                    Text="{StaticResource GlyphPrevious}"
@@ -363,7 +836,7 @@
                                 </Button>
                                 <Button Style="{StaticResource PlayButton}"
                                         Command="{Binding PlayCommand}"
-                                        ToolTip="재생">
+                                        ToolTip="선택한 큐 재생 (Enter)">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource IconGlyph}"
                                                    Text="{StaticResource GlyphPlay}"
@@ -375,7 +848,7 @@
                                 </Button>
                                 <Button Style="{StaticResource TransportButton}"
                                         Command="{Binding PauseCommand}"
-                                        ToolTip="일시정지">
+                                        ToolTip="일시정지 / 계속 (Space)">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource IconGlyph}"
                                                    Text="{StaticResource GlyphPause}"
@@ -386,7 +859,7 @@
                                 </Button>
                                 <Button Style="{StaticResource TransportButton}"
                                         Command="{Binding StopCommand}"
-                                        ToolTip="정지">
+                                        ToolTip="즉시 정지">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource IconGlyph}"
                                                    Text="{StaticResource GlyphStop}"
@@ -395,9 +868,41 @@
                                         <TextBlock Text="정지" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
+
+                                <!-- Fade stop + its duration -->
+                                <Button Command="{Binding FadeStopCommand}"
+                                        Margin="0,0,2,0"
+                                        ToolTip="소리를 줄이며 정지 (F) · 한 번 더 누르면 즉시 정지">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource TransportButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsFadingOut}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                                                    <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Style="{StaticResource IconGlyph}"
+                                                   Text="{StaticResource GlyphVolume}"
+                                                   FontSize="12"
+                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                   Margin="0,0,6,0" />
+                                        <TextBlock Text="페이드 정지" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <ComboBox ItemsSource="{Binding FadeStopOptions}"
+                                          SelectedItem="{Binding SelectedFadeStop}"
+                                          Width="72"
+                                          Height="42"
+                                          Margin="0,0,6,0"
+                                          VerticalAlignment="Center"
+                                          ToolTip="페이드 정지에 걸리는 시간" />
+
                                 <Button Style="{StaticResource TransportButton}"
                                         Command="{Binding NextCommand}"
-                                        ToolTip="다음">
+                                        ToolTip="다음 (Shift+→)">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Style="{StaticResource IconGlyph}"
                                                    Text="{StaticResource GlyphNext}"
@@ -406,9 +911,6 @@
                                         <TextBlock Text="다음" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
-                                <CheckBox Content="자동 다음"
-                                          IsChecked="{Binding AutoAdvance}"
-                                          Margin="14,0,0,0" />
                             </StackPanel>
 
                             <Border DockPanel.Dock="Right"

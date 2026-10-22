@@ -52,9 +52,22 @@ public partial class MainWindow : Window
             return;
 
         var shift = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+        var noModifiers = Keyboard.Modifiers == ModifierKeys.None;
 
         switch (e.Key)
         {
+            case Key.F when noModifiers:
+                _viewModel.FadeStopCommand.Execute(null);
+                e.Handled = true;
+                break;
+            case Key.I when noModifiers:
+                _viewModel.MarkCurrentCue(isIn: true);
+                e.Handled = true;
+                break;
+            case Key.O when noModifiers:
+                _viewModel.MarkCurrentCue(isIn: false);
+                e.Handled = true;
+                break;
             case Key.Up:
                 _viewModel.SelectPreviousCommand.Execute(null);
                 ScrollSelectedIntoView();
@@ -101,6 +114,13 @@ public partial class MainWindow : Window
                 }
                 break;
         }
+    }
+
+    // Clicking anywhere outside a focused text field commits it and frees the hotkeys.
+    private void Window_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (Keyboard.FocusedElement is System.Windows.Controls.TextBox { IsMouseOver: false })
+            Focus();
     }
 
     private void ScrollSelectedIntoView()
